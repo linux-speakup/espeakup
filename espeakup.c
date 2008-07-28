@@ -30,11 +30,13 @@
 const int pitchMultiplier = 10;
 const int rateMultiplier = 32;
 const int rateOffset = 80;
+const int volumeMultiplier = 10;
 
 struct synth_t {
 	int fd;
 	int pitch;
 	int rate;
+	int volume;
 	char buf[1025];
 };
 
@@ -51,6 +53,11 @@ static void set_pitch (struct synth_t *s)
 static void set_rate (struct synth_t *s)
 {
 espeak_SetParameter(espeakRATE, s->rate * rateMultiplier + rateOffset, 0);
+}
+
+static void set_volume (struct synth_t *s)
+{
+	espeak_SetParameter(espeakVOLUME, s->volume * volumeMultiplier, 0);
 }
 
 static void stop_speech(void)
@@ -87,6 +94,10 @@ static int process_command(struct synth_t *s, char *buf, int start)
 				s->rate += value;
 				set_rate (s);
 				break;
+			case 'v':
+				s->volume += value;
+				set_volume (s);
+				break;
 			}
 			return 4;
 		} else if (buf[start+1] >= '0' && buf[start+1] <= '9') {
@@ -100,6 +111,10 @@ static int process_command(struct synth_t *s, char *buf, int start)
 			case 's':
 				s->rate = value;
 				set_rate (s);
+				break;
+			case 'v':
+				s->volume = value;
+				set_volume (s);
 				break;
 			}
 		}
@@ -176,9 +191,11 @@ int main ()
 	/* Setup initial voice parameters */
 	s.pitch = 5;
 	s.rate = 5;
+	s.volume = 5;
 	strcpy(s.buf,"");
 	set_pitch (&s);
 	set_rate (&s);
+	set_volume(&s);
 
 	/* run the main loop */
 	main_loop (&s);
