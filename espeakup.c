@@ -23,8 +23,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <espeak/speak_lib.h>
+
+/* command line options */
+const char *cliOptions = "d";
 
 /* multipliers and offsets */
 const int pitchMultiplier = 10;
@@ -33,6 +35,7 @@ const int rateOffset = 80;
 const int volumeMultiplier = 10;
 
 struct synth_t {
+	int debug;
 	int fd;
 	int pitch;
 	int rate;
@@ -170,12 +173,31 @@ static void main_loop (struct synth_t *s)
 	}
 }
 
-int main ()
+int main (int argc, char **argv)
 {
+	int opt;
 	struct synth_t s;
 
+	s.debug = 0;
+	s.pitch = 5;
+	s.rate = 5;
+	s.volume = 5;
+	strcpy(s.buf,"");
+
+	while ((opt = getopt(argc, argv, cliOptions)) != -1) {
+		switch(opt) {
+		case 'd':
+			s.debug = 1;
+			break;
+		default:
+			printf("usage: %s [-d]\n", argv[0]);
+			exit(1);
+			break;
+		}
+	}
 	/* become a daemon */
-	daemon(0, 1);
+	if (! s.debug)
+		daemon(0, 1);
 
 	/* open the softsynth. */
 	s.fd = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
@@ -189,10 +211,6 @@ int main ()
 	espeak_SetSynthCallback(SynthCallback);
 
 	/* Setup initial voice parameters */
-	s.pitch = 5;
-	s.rate = 5;
-	s.volume = 5;
-	strcpy(s.buf,"");
 	set_pitch (&s);
 	set_rate (&s);
 	set_volume(&s);
