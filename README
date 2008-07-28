@@ -1,0 +1,42 @@
+espeakup connector
+=======================
+
+This is very early alpha software, so please keep that in mind if you
+use this program.
+
+espeakup is a program which makes it possible for speakup to use
+the espeak software synthesizer.  It does this by reading speakup's
+softsynth device and passing the text to espeak which actually speaks.
+
+Requirements
+============
+
+This program works with the speakup screen reader, which can be obtained
+from http://linux-speakup.org, and the espeak software speech
+synthesizer which can be obtained from http://espeak.sourceforge.net.
+You must have both of these installed and operational.  Setting them up
+is beyond the scope of this document.
+
+Installation
+============
+
+To install espeakup, first cd into the directory where you
+unpacked the tarball, then issue make to compile the program.  Once this
+is done, as root, issue make install.  This will install espeakup in /usr/bin.
+
+Starting up
+===========
+
+This program should be run after speakup is set up to communicate with a
+software synthesizer and after /dev/softsynth exists.  Currently it does
+not accept any command line options, so invoke it as follows:
+
+/usr/sbin/espeakup
+
+Questions
+=========
+
+You can contact me with questions, bugs, patches, etc, at
+w.d.hubbs@gmail.com or on the speakup mailing list.
+
+Thanks, and I hope you find this useful.
