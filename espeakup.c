@@ -28,6 +28,9 @@
 /* command line options */
 const char *cliOptions = "d";
 
+/* max buffer size */
+const int maxBufferSize = 1025;
+
 /* multipliers and offsets */
 const int pitchMultiplier = 10;
 const int rateMultiplier = 32;
@@ -40,7 +43,7 @@ struct synth_t {
 	int pitch;
 	int rate;
 	int volume;
-	char buf[1025];
+	char *buf;
 };
 
 int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
@@ -134,10 +137,10 @@ static void process_data (struct synth_t *s)
 	int length;
 	int start;
 	int end;
-	char buf[1025];
-	char tmp_buf[1025];
+	char buf[maxBufferSize];
+	char tmp_buf[maxBufferSize];
 
-	length = read (s->fd, buf, 1024);
+	length = read (s->fd, buf, maxBufferSize - 1);
 	start = 0;
 	end = 0;
 	while (start < length) {
@@ -182,7 +185,11 @@ int main (int argc, char **argv)
 	s.pitch = 5;
 	s.rate = 5;
 	s.volume = 5;
-	strcpy(s.buf,"");
+	s.buf = malloc(maxBufferSize);
+	if (! s.buf) {
+		printf("Unable to allocate buffer!\n");
+		exit(1);
+	}
 
 	while ((opt = getopt(argc, argv, cliOptions)) != -1) {
 		switch(opt) {
@@ -221,6 +228,7 @@ int main (int argc, char **argv)
 	/* shutdown espeak and close the softsynth */
 	espeak_Terminate();
 	close(s.fd);
+	free(s.buf);
 
 	return 0;
 }
