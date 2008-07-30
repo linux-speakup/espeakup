@@ -17,6 +17,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -135,15 +136,14 @@ static int process_command(struct synth_t *s, char *buf, int start)
 	return 1;
 }
 
-static void process_data (struct synth_t *s)
+static void process_data (struct synth_t *s, char *buf, size_t length)
 {
-	int length;
 	int start;
 	int end;
-	char buf[maxBufferSize];
 
 	for(start = 0; start < maxBufferSize; start++)
-		*(buf+start) = 0;	length = read (s->fd, buf, maxBufferSize - 1);
+		*(s->buf+start) = 0;
+	
 	start = 0;
 	end = 0;
 	while (start < length) {
@@ -153,29 +153,40 @@ static void process_data (struct synth_t *s)
 			s->len = end-start;
 			strncpy (s->buf, buf + start, s->len);
 			s->buf[s->len] = 0;
+			speak_text (s);
 		}
 		if (end < length)
 			start = end = end+process_command (s, buf, end);
 		else
 			start = length;
 	}
-	speak_text (s);
 }
 
 static void main_loop (struct synth_t *s)
 {
 	fd_set set;
-	struct timeval tv;
-	struct timeval timeout = {0, 20000};
 	int i;
+	size_t length;
+	char buf[maxBufferSize];
 	
 	while (1) {
 		FD_ZERO (&set);
 		FD_SET (s->fd, &set);
-		tv = timeout;
-		i = select (s->fd+1, &set, NULL, NULL, &tv);
-		if (i)
-			process_data (s);
+		i = select (s->fd+1, &set, NULL, NULL, NULL);
+		if (i < 0) {
+			if (errno == EINTR)
+				continue;
+			printf("Select failed!\n");
+			break;
+		}
+
+		length = read (s->fd, buf, maxBufferSize - 1);
+		if (length < 0) {
+			printf("Read from softsynth failed!\n");
+			break;
+	}
+	*(buf+length) = 0;
+		process_data (s, buf, length);
 	}
 }
 
