@@ -43,6 +43,7 @@ struct synth_t {
 	int fd;
 	int pitch;
 	int rate;
+	char voice[40];
 	int volume;
 	int len;
 	char *buf;
@@ -63,6 +64,11 @@ static void set_rate (struct synth_t *s)
 espeak_SetParameter(espeakRATE, s->rate * rateMultiplier + rateOffset, 0);
 }
 
+static void set_voice(struct synth_t *s)
+{
+	espeak_SetVoiceByName(s->voice);
+}
+
 static void set_volume (struct synth_t *s)
 {
 	espeak_SetParameter(espeakVOLUME, s->volume * volumeMultiplier, 0);
@@ -75,9 +81,7 @@ static void stop_speech(void)
 
 static void speak_text(struct synth_t *s)
 {
-	if (! s->len)
-		return;
-	espeak_Synth(s->buf, s->len, 0, POS_CHARACTER, 0, 0, NULL, s);
+	espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL, NULL);
 	for (s->len = 0; s->len < maxBufferSize; s->len++)
 		*(s->buf+s->len) = 0;
 	s->len = 0;
@@ -192,13 +196,16 @@ static void main_loop (struct synth_t *s)
 
 int main (int argc, char **argv)
 {
-	int opt;
-	struct synth_t s;
+	struct synth_t s = {
+		.debug = 0,
+		.pitch = 5,
+		.rate = 5,
+		.voice = "default",
+		.volume = 5,
+	};
 
-	s.debug = 0;
-	s.pitch = 5;
-	s.rate = 5;
-	s.volume = 5;
+	int opt;
+
 	s.buf = malloc(maxBufferSize);
 	if (! s.buf) {
 		printf("Unable to allocate buffer!\n");
@@ -216,6 +223,7 @@ int main (int argc, char **argv)
 			break;
 		}
 	}
+
 	/* become a daemon */
 	if (! s.debug)
 		daemon(0, 1);
@@ -232,6 +240,7 @@ int main (int argc, char **argv)
 	espeak_SetSynthCallback(SynthCallback);
 
 	/* Setup initial voice parameters */
+	set_voice(&s);
 	set_pitch (&s);
 	set_rate (&s);
 	set_volume(&s);
