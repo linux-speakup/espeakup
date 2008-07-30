@@ -43,6 +43,7 @@ struct synth_t {
 	int pitch;
 	int rate;
 	int volume;
+	int len;
 	char *buf;
 };
 
@@ -73,10 +74,12 @@ static void stop_speech(void)
 
 static void speak_text(struct synth_t *s)
 {
-	if (! strlen(s->buf))
+	if (! s->len)
 		return;
-	espeak_Synth(s->buf, strlen(s->buf), 0, POS_CHARACTER, 0, 0, NULL, s);
-	strcpy(s->buf, "");
+	espeak_Synth(s->buf, s->len, 0, POS_CHARACTER, 0, 0, NULL, s);
+	for (s->len = 0; s->len < maxBufferSize; s->len++)
+		*(s->buf+s->len) = 0;
+	s->len = 0;
 }
 
 static int process_command(struct synth_t *s, char *buf, int start)
@@ -138,18 +141,18 @@ static void process_data (struct synth_t *s)
 	int start;
 	int end;
 	char buf[maxBufferSize];
-	char tmp_buf[maxBufferSize];
 
-	length = read (s->fd, buf, maxBufferSize - 1);
+	for(start = 0; start < maxBufferSize; start++)
+		*(buf+start) = 0;	length = read (s->fd, buf, maxBufferSize - 1);
 	start = 0;
 	end = 0;
 	while (start < length) {
 		while (buf[end] >= 32 && end < length)
 			end++;
 		if (end != start) {
-			strncpy (tmp_buf, buf + start, end-start);
-			tmp_buf[end-start] = 0;
-			strcat(s->buf, tmp_buf);
+			s->len = end-start;
+			strncpy (s->buf, buf + start, s->len);
+			s->buf[s->len] = 0;
 		}
 		if (end < length)
 			start = end = end+process_command (s, buf, end);
