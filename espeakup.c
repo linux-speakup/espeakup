@@ -39,8 +39,6 @@ const int rateOffset = 80;
 const int volumeMultiplier = 10;
 
 struct synth_t {
-	int debug;
-	int fd;
 	int pitch;
 	int rate;
 	char voice[40];
@@ -48,6 +46,9 @@ struct synth_t {
 	int len;
 	char *buf;
 };
+
+int debug = 0;
+int softFD;
 
 int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
 {
@@ -144,9 +145,11 @@ static void process_data (struct synth_t *s, char *buf, size_t length)
 {
 	int start;
 	int end;
+	char txtBuf[maxBufferSize];
+	size_t txtLen;
 
 	for(start = 0; start < maxBufferSize; start++)
-		*(s->buf+start) = 0;
+		*(txtBuf+start) = 0;
 	
 	start = 0;
 	end = 0;
@@ -154,9 +157,11 @@ static void process_data (struct synth_t *s, char *buf, size_t length)
 		while (buf[end] >= 32 && end < length)
 			end++;
 		if (end != start) {
-			s->len = end-start;
-			strncpy (s->buf, buf + start, s->len);
-			s->buf[s->len] = 0;
+			txtLen = end-start;
+			strncpy (txtBuf, buf + start, txtLen);
+			*(txtBuf+txtLen) = 0;
+			s->buf = txtBuf;
+			s->len = txtLen;
 			speak_text (s);
 		}
 		if (end < length)
@@ -175,8 +180,8 @@ static void main_loop (struct synth_t *s)
 	
 	while (1) {
 		FD_ZERO (&set);
-		FD_SET (s->fd, &set);
-		i = select (s->fd+1, &set, NULL, NULL, NULL);
+		FD_SET (softFD, &set);
+		i = select (softFD+1, &set, NULL, NULL, NULL);
 		if (i < 0) {
 			if (errno == EINTR)
 				continue;
@@ -184,7 +189,7 @@ static void main_loop (struct synth_t *s)
 			break;
 		}
 
-		length = read (s->fd, buf, maxBufferSize - 1);
+		length = read (softFD, buf, maxBufferSize - 1);
 		if (length < 0) {
 			printf("Read from softsynth failed!\n");
 			break;
@@ -197,7 +202,6 @@ static void main_loop (struct synth_t *s)
 int main (int argc, char **argv)
 {
 	struct synth_t s = {
-		.debug = 0,
 		.pitch = 5,
 		.rate = 5,
 		.voice = "default",
@@ -206,16 +210,10 @@ int main (int argc, char **argv)
 
 	int opt;
 
-	s.buf = malloc(maxBufferSize);
-	if (! s.buf) {
-		printf("Unable to allocate buffer!\n");
-		exit(1);
-	}
-
 	while ((opt = getopt(argc, argv, cliOptions)) != -1) {
 		switch(opt) {
 		case 'd':
-			s.debug = 1;
+			debug = 1;
 			break;
 		default:
 			printf("usage: %s [-d]\n", argv[0]);
@@ -225,12 +223,12 @@ int main (int argc, char **argv)
 	}
 
 	/* become a daemon */
-	if (! s.debug)
+	if (! debug)
 		daemon(0, 1);
 
 	/* open the softsynth. */
-	s.fd = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
-	if (s.fd < 0) {
+	softFD = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
+	if (softFD < 0) {
 		printf("Unable to open the softsynth device.\n");
 		return -1;
 	}
@@ -250,8 +248,7 @@ int main (int argc, char **argv)
 
 	/* shutdown espeak and close the softsynth */
 	espeak_Terminate();
-	close(s.fd);
-	free(s.buf);
+	close(softFD);
 
 	return 0;
 }
