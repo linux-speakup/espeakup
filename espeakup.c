@@ -71,7 +71,7 @@ static void set_voice(struct synth_t *s)
 
 static void set_volume (struct synth_t *s)
 {
-	espeak_SetParameter(espeakVOLUME, s->volume * volumeMultiplier, 0);
+	espeak_SetParameter(espeakVOLUME, (s->volume+1) * volumeMultiplier, 0);
 }
 
 static void stop_speech(void)
@@ -188,8 +188,8 @@ static void main_loop (struct synth_t *s)
 		if (length < 0) {
 			printf("Read from softsynth failed!\n");
 			break;
-	}
-	*(buf+length) = 0;
+		}
+		*(buf+length) = 0;
 		process_data (s, buf, length);
 	}
 }
