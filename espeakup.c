@@ -32,6 +32,9 @@ const char *cliOptions = "d";
 /* max buffer size */
 const int maxBufferSize = 1025;
 
+/* path to our pid file */
+const char *pidPath = "/var/run/espeakup.pid";
+
 /* multipliers and offsets */
 const int pitchMultiplier = 10;
 const int rateMultiplier = 32;
@@ -199,6 +202,36 @@ static void main_loop (struct synth_t *s)
 	}
 }
 
+int espeakup_is_running(void)
+{
+	int rc;
+	FILE *pidFile;
+	pid_t pid;
+
+	rc = 0;
+	pidFile = fopen(pidPath, "r");
+	if (pidFile) {
+		fscanf(pidFile, "%d", &pid);
+		fclose(pidFile);
+		if (! kill(pid, 0) || errno != ESRCH)
+			rc = 1;
+	}
+	return rc;
+}
+
+int create_pid_file(void)
+{
+	FILE *pidFile;
+
+	pidFile = fopen(pidPath, "w");
+	if (! pidFile)
+		return -1;
+
+	fprintf(pidFile, "%d\n", getpid());
+	fclose(pidFile);
+	return 0;
+}
+ 
 void espeakup_sighandler(int sig)
 {
 	if (debug)
@@ -207,6 +240,9 @@ void espeakup_sighandler(int sig)
 	/* shutdown espeak and close the softsynth */
 	espeak_Terminate();
 	close(softFD);
+
+	if (! debug)
+		unlink(pidPath);
 	exit(0);
 }
 
@@ -228,7 +264,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			printf("usage: %s [-d]\n", argv[0]);
-			exit(1);
+			exit(0);
 			break;
 		}
 	}
@@ -237,11 +273,23 @@ int main(int argc, char **argv)
 	if (! debug)
 		daemon(0, 1);
 
+	/* make sure espeakup is not already running */
+	if (! debug && espeakup_is_running()) {
+		printf("Espeakup is already running!\n");
+		return 1;
+	}
+
+	/* write our pid file. */
+	if (! debug && create_pid_file() < 0) {
+		printf("Unable to create pid file!\n");
+		return 2;
+	}
+
 	/* open the softsynth. */
 	softFD = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0) {
 		printf("Unable to open the softsynth device.\n");
-		return -1;
+		return 3;
 	}
 
 	/* initialize espeak */
