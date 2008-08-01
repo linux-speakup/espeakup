@@ -199,7 +199,18 @@ static void main_loop (struct synth_t *s)
 	}
 }
 
-int main (int argc, char **argv)
+void espeakup_sighandler(int sig)
+{
+	if (debug)
+		printf("Caught signal %i\n", sig);
+	
+	/* shutdown espeak and close the softsynth */
+	espeak_Terminate();
+	close(softFD);
+	exit(0);
+}
+
+int main(int argc, char **argv)
 {
 	struct synth_t s = {
 		.pitch = 5,
@@ -243,12 +254,12 @@ int main (int argc, char **argv)
 	set_rate (&s);
 	set_volume(&s);
 
+	/* register signal handler */
+	signal(SIGINT, espeakup_sighandler);
+	signal(SIGTERM, espeakup_sighandler);
+
 	/* run the main loop */
 	main_loop (&s);
-
-	/* shutdown espeak and close the softsynth */
-	espeak_Terminate();
-	close(softFD);
 
 	return 0;
 }
