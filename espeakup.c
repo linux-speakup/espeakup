@@ -37,10 +37,10 @@ const char *pidPath = "/var/run/espeakup.pid";
 
 /* multipliers and offsets */
 const int frequencyMultiplier = 11;
-const int pitchMultiplier = 10;
+const int pitchMultiplier = 11;
 const int rateMultiplier = 32;
 const int rateOffset = 80;
-const int volumeMultiplier = 10;
+const int volumeMultiplier = 11;
 
 struct synth_t {
 	int frequency;
