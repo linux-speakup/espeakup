@@ -1,0 +1,19 @@
+#!/bin/bash
+# Makes a tarball release
+
+ver=$(grep "const char.*Version" espeakup.c)
+ver=${ver%\"*}
+ver=${ver#*\"}
+
+PREFIX=espeakup-${VER}
+REL=${1:-v${VER}}
+
+TIMESTAMP=
+if [ "$REL" != "v${VER}" ]; then
+	TIMESTAMP="_p`date +%Y%m%d`"
+fi
+
+TARFILE=${PREFIX}${TIMESTAMP}.tar.bz2
+
+git archive --format=tar --prefix=${PREFIX}/ $REL | bzip2 > ${TARFILE}
+echo "Produced ${TARFILE}"
