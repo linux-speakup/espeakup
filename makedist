@@ -13,7 +13,9 @@ if [ "$REL" != "v${ver}" ]; then
 	TIMESTAMP="_p`date +%Y%m%d`"
 fi
 
-TARFILE=${PREFIX}${TIMESTAMP}.tar.bz2
+TARFILE=${PREFIX}${TIMESTAMP}.tar
 
-git archive --format=tar --prefix=${PREFIX}/ $REL | bzip2 > ${TARFILE}
-echo "Produced ${TARFILE}"
+git archive --format=tar --prefix=${PREFIX}/ $REL > ${TARFILE}
+tar f ${TARFILE} --delete ${PREFIX}/.gitignore --delete ${PREFIX}/makedist
+bzip2 ${TARFILE}
+echo Produced ${TARFILE}*
