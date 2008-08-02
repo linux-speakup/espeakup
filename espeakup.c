@@ -36,12 +36,14 @@ const int maxBufferSize = 1025;
 const char *pidPath = "/var/run/espeakup.pid";
 
 /* multipliers and offsets */
+const int frequencyMultiplier = 11;
 const int pitchMultiplier = 10;
 const int rateMultiplier = 32;
 const int rateOffset = 80;
 const int volumeMultiplier = 10;
 
 struct synth_t {
+	int frequency;
 	int pitch;
 	int rate;
 	char voice[40];
@@ -56,6 +58,11 @@ int softFD;
 int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
 {
 	return 0;
+}
+
+static void set_frequency (struct synth_t *s)
+{
+	espeak_SetParameter(espeakRANGE, s->frequency * frequencyMultiplier, 0);
 }
 
 static void set_pitch (struct synth_t *s)
@@ -104,6 +111,10 @@ static int process_command(struct synth_t *s, char *buf, int start)
 			if (buf[start+1] == '-')
 				value = -value;
 			switch (param) {
+			case 'f':
+				s->frequency += value;
+				set_frequency (s);
+				break;
 			case 'p':
 				s->pitch += value;
 				set_pitch (s);
@@ -122,6 +133,10 @@ static int process_command(struct synth_t *s, char *buf, int start)
 			value = buf[start+1]-'0';
 			param = buf[start+2];
 			switch (param) {
+			case 'f':
+				s->frequency = value;
+				set_frequency (s);
+				break;
 			case 'p':
 				s->pitch = value;
 				set_pitch (s);
@@ -249,6 +264,7 @@ void espeakup_sighandler(int sig)
 int main(int argc, char **argv)
 {
 	struct synth_t s = {
+		.frequency = 5,
 		.pitch = 5,
 		.rate = 5,
 		.voice = "default",
@@ -298,6 +314,7 @@ int main(int argc, char **argv)
 
 	/* Setup initial voice parameters */
 	set_voice(&s);
+	set_frequency (&s);
 	set_pitch (&s);
 	set_rate (&s);
 	set_volume(&s);
