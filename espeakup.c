@@ -1,5 +1,5 @@
 /*
- *  espeakup - connector so that speakup can use espeak.
+ *  espeakup - interface which allows speakup to use espeak
  *
  *  Copyright (C) 2008 William Hubbs
  *
@@ -26,8 +26,11 @@
 #include <unistd.h>
 #include <espeak/speak_lib.h>
 
+/* program version */
+const char *Version = "0.1";
+
 /* command line options */
-const char *cliOptions = "d";
+const char *cliOptions = "dV";
 
 /* max buffer size */
 const int maxBufferSize = 1025;
@@ -261,6 +264,14 @@ void espeakup_sighandler(int sig)
 	exit(0);
 }
 
+void show_version(void)
+{
+	printf("espeakup %s\n", Version);
+	printf("Copyright (C) 2008 William Hubbs\n");
+	printf("License GPLv3+: GNU GPL version 3 or later\n");
+	printf("You are free to change and redistribute this software.\n");
+}
+
 int main(int argc, char **argv)
 {
 	struct synth_t s = {
@@ -278,9 +289,13 @@ int main(int argc, char **argv)
 		case 'd':
 			debug = 1;
 			break;
+		case 'V':
+			show_version();
+			exit(0);
+			break;
 		default:
 			printf("usage: %s [-d]\n", argv[0]);
-			exit(0);
+			return 0;
 			break;
 		}
 	}
