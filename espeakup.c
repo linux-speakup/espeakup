@@ -30,7 +30,7 @@
 const char *Version = "0.1";
 
 /* command line options */
-const char *cliOptions = "dV";
+const char *shortOptions = "dhv";
 
 /* max buffer size */
 const int maxBufferSize = 1025;
@@ -264,6 +264,14 @@ void espeakup_sighandler(int sig)
 	exit(0);
 }
 
+void show_help()
+{
+	printf("Usage:  espeakup [-d] [-h] [-v]\n\n");
+	printf("-d\tDebug mode (stay in the foreground)\n");
+	printf("-h\tShow this help\n");
+	printf("-v\tDisplay the software version.\n");
+}
+
 void show_version(void)
 {
 	printf("espeakup %s\n", Version);
@@ -284,17 +292,21 @@ int main(int argc, char **argv)
 
 	int opt;
 
-	while ((opt = getopt(argc, argv, cliOptions)) != -1) {
+	while ((opt = getopt(argc, argv, shortOptions)) != -1) {
 		switch(opt) {
 		case 'd':
 			debug = 1;
 			break;
-		case 'V':
+		case 'h':
+			show_help();
+			return 0;
+			break;
+		case 'v':
 			show_version();
-			exit(0);
+			return 0;
 			break;
 		default:
-			printf("usage: %s [-d]\n", argv[0]);
+			show_help();
 			return 0;
 			break;
 		}
