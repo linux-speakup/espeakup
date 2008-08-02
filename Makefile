@@ -1,3 +1,5 @@
+PREFIX = /usr
+
 LDLIBS = -lespeak
 
 PROGRAM = espeakup
@@ -8,5 +10,5 @@ clean:
 	rm $(PROGRAM)
 
 install: $(PROGRAM)
-	install -m 0755 $(PROGRAM) $(DESTDIR)/usr/bin
+	install -m 0755 $(PROGRAM) $(DESTDIR)$(PREFIX)/bin
 
