@@ -11,7 +11,7 @@ all: espeakup
 
 install: espeakup
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 $(PROGRAM) $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 0755 $< $(DESTDIR)$(BINDIR)
 
 clean:
 	$(RM) espeakup
