@@ -1,14 +1,18 @@
+CC = cc
+INSTALL = /usr/bin/install
+RM = /bin/rm
+
 PREFIX = /usr
+BINDIR = $(PREFIX)/bin
 
 LDLIBS = -lespeak
 
-PROGRAM = espeakup
+all: espeakup
 
-all: $(PROGRAM)
+install: espeakup
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 0755 $(PROGRAM) $(DESTDIR)$(BINDIR)
 
 clean:
-	rm $(PROGRAM)
-
-install: $(PROGRAM)
-	install -m 0755 $(PROGRAM) $(DESTDIR)$(PREFIX)/bin
+	$(RM) espeakup
 
