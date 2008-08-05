@@ -24,7 +24,7 @@ To install espeakup, first cd into the directory where you
 unpacked the tarball, then issue make to compile the program.  Once this
 is done, as root, issue make install.  This will install espeakup in /usr/bin.
 
-Starting up
+Starting Up
 ===========
 
 This program should be run after speakup is set up to communicate with a
@@ -37,6 +37,14 @@ Questions
 =========
 
 You can contact me with questions, bugs, patches, etc, at
-w.d.hubbs@gmail.com or on the speakup mailing list.
+w.d.hubbs@gmail.com or on the speakup mailing list.  I hope you find
+this software to be useful.
 
-Thanks, and I hope you find this useful.
+Acknowledgements
+================
+
+I would like to thank Marc Mulcahy, the author of the speakup to
+TTSynth connector, on which this work is based.  Also, I would like
+to thank Kirk Reiser and Jonathan Duttington, the
+authors of Speakup and Espeak, respectively, for their work.
+
