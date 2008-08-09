@@ -1,8 +1,0 @@
-This directory contains init scripts for espeakup for various linux
-distributions.  Any issues with these should be addressed directly with
-the authors of the scripts as listed below.
-
-espeakup.redhat:  This script is designed forFedora and Redhat
-Enterprise linux.  It was written by William Acker, who can be contacted
-by email at wacker@octothorp.org.
-
