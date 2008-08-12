@@ -206,13 +206,13 @@ static void main_loop (struct synth_t *s)
 		if (i < 0) {
 			if (errno == EINTR)
 				continue;
-			printf("Select failed!\n");
+			perror("Select failed");
 			break;
 		}
 
 		length = read (softFD, buf, maxBufferSize - 1);
 		if (length < 0) {
-			printf("Read from softsynth failed!\n");
+			perror("Read from softsynth failed");
 			break;
 		}
 		*(buf+length) = 0;
@@ -270,6 +270,7 @@ void show_help()
 	printf("-d\tDebug mode (stay in the foreground)\n");
 	printf("-h\tShow this help\n");
 	printf("-v\tDisplay the software version.\n");
+	exit(0);
 }
 
 void show_version(void)
@@ -278,6 +279,29 @@ void show_version(void)
 	printf("Copyright (C) 2008 William Hubbs\n");
 	printf("License GPLv3+: GNU GPL version 3 or later\n");
 	printf("You are free to change and redistribute this software.\n");
+	exit(0);
+}
+
+void process_cli(int argc, char **argv)
+{
+	int opt;
+
+	while ((opt = getopt(argc, argv, shortOptions)) != -1) {
+		switch(opt) {
+		case 'd':
+			debug = 1;
+			break;
+		case 'h':
+			show_help();
+			break;
+		case 'v':
+			show_version();
+			break;
+		default:
+			show_help();
+			break;
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -290,48 +314,29 @@ int main(int argc, char **argv)
 		.volume = 5,
 	};
 
-	int opt;
+	/* process command line options */
+	process_cli(argc, argv);
 
-	while ((opt = getopt(argc, argv, shortOptions)) != -1) {
-		switch(opt) {
-		case 'd':
-			debug = 1;
-			break;
-		case 'h':
-			show_help();
-			return 0;
-			break;
-		case 'v':
-			show_version();
-			return 0;
-			break;
-		default:
-			show_help();
-			return 0;
-			break;
+	if (! debug) {
+		if (espeakup_is_running()) {
+			printf("Espeakup is already running!\n");
+			return 1;
 		}
-	}
 
-	/* become a daemon */
-	if (! debug)
+		/* become a daemon */
 		daemon(0, 1);
 
-	/* make sure espeakup is not already running */
-	if (! debug && espeakup_is_running()) {
-		printf("Espeakup is already running!\n");
-		return 1;
-	}
-
-	/* write our pid file. */
-	if (! debug && create_pid_file() < 0) {
-		printf("Unable to create pid file!\n");
-		return 2;
+		/* write our pid file. */
+		if (create_pid_file() < 0) {
+			perror("Unable to create pid file");
+			return 2;
+		}
 	}
 
 	/* open the softsynth. */
 	softFD = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0) {
-		printf("Unable to open the softsynth device.\n");
+		perror("Unable to open the softsynth device");
 		return 3;
 	}
 
