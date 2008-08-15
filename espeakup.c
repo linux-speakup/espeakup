@@ -24,7 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <espeak/speak_lib.h>
+
+#include "espeakup.h"
 
 /* program version */
 const char *Version = "0.1";
@@ -32,193 +33,11 @@ const char *Version = "0.1";
 /* command line options */
 const char *shortOptions = "dhv";
 
-/* max buffer size */
-const int maxBufferSize = 1025;
-
 /* path to our pid file */
 const char *pidPath = "/var/run/espeakup.pid";
 
-/* multipliers and offsets */
-const int frequencyMultiplier = 11;
-const int pitchMultiplier = 11;
-const int rateMultiplier = 32;
-const int rateOffset = 80;
-const int volumeMultiplier = 11;
-
-struct synth_t {
-	int frequency;
-	int pitch;
-	int rate;
-	char voice[40];
-	int volume;
-	int len;
-	char *buf;
-};
-
 int debug = 0;
 int softFD;
-
-int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
-{
-	return 0;
-}
-
-static void set_frequency (struct synth_t *s)
-{
-	espeak_SetParameter(espeakRANGE, s->frequency * frequencyMultiplier, 0);
-}
-
-static void set_pitch (struct synth_t *s)
-{
-	espeak_SetParameter(espeakPITCH, s->pitch * pitchMultiplier, 0);
-}
-
-static void set_rate (struct synth_t *s)
-{
-espeak_SetParameter(espeakRATE, s->rate * rateMultiplier + rateOffset, 0);
-}
-
-static void set_voice(struct synth_t *s)
-{
-	espeak_SetVoiceByName(s->voice);
-}
-
-static void set_volume (struct synth_t *s)
-{
-	espeak_SetParameter(espeakVOLUME, (s->volume+1) * volumeMultiplier, 0);
-}
-
-static void stop_speech(void)
-{
-	espeak_Cancel();
-}
-
-static void speak_text(struct synth_t *s)
-{
-	espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL, NULL);
-	for (s->len = 0; s->len < maxBufferSize; s->len++)
-		*(s->buf+s->len) = 0;
-	s->len = 0;
-}
-
-static int process_command(struct synth_t *s, char *buf, int start)
-{
-	char value;
-	char param;
-	
-	switch (buf[start]) {
-	case 1:
-		if (buf[start+1] == '+' || buf[start+1] == '-') {
-			value = buf[start+2]-'0';
-			param = buf[start+3];
-			if (buf[start+1] == '-')
-				value = -value;
-			switch (param) {
-			case 'f':
-				s->frequency += value;
-				set_frequency (s);
-				break;
-			case 'p':
-				s->pitch += value;
-				set_pitch (s);
-				break;
-			case 's':
-				s->rate += value;
-				set_rate (s);
-				break;
-			case 'v':
-				s->volume += value;
-				set_volume (s);
-				break;
-			}
-			return 4;
-		} else if (buf[start+1] >= '0' && buf[start+1] <= '9') {
-			value = buf[start+1]-'0';
-			param = buf[start+2];
-			switch (param) {
-			case 'f':
-				s->frequency = value;
-				set_frequency (s);
-				break;
-			case 'p':
-				s->pitch = value;
-				set_pitch (s);
-				break;
-			case 's':
-				s->rate = value;
-				set_rate (s);
-				break;
-			case 'v':
-				s->volume = value;
-				set_volume (s);
-				break;
-			}
-		}
-		return 3;
-	case 24:
-		stop_speech();
-		return 1;
-	}
-	return 1;
-}
-
-static void process_data (struct synth_t *s, char *buf, size_t length)
-{
-	int start;
-	int end;
-	char txtBuf[maxBufferSize];
-	size_t txtLen;
-
-	for(start = 0; start < maxBufferSize; start++)
-		*(txtBuf+start) = 0;
-	
-	start = 0;
-	end = 0;
-	while (start < length) {
-		while (buf[end] >= 32 && end < length)
-			end++;
-		if (end != start) {
-			txtLen = end-start;
-			strncpy (txtBuf, buf + start, txtLen);
-			*(txtBuf+txtLen) = 0;
-			s->buf = txtBuf;
-			s->len = txtLen;
-			speak_text (s);
-		}
-		if (end < length)
-			start = end = end+process_command (s, buf, end);
-		else
-			start = length;
-	}
-}
-
-static void main_loop (struct synth_t *s)
-{
-	fd_set set;
-	int i;
-	size_t length;
-	char buf[maxBufferSize];
-	
-	while (1) {
-		FD_ZERO (&set);
-		FD_SET (softFD, &set);
-		i = select (softFD+1, &set, NULL, NULL, NULL);
-		if (i < 0) {
-			if (errno == EINTR)
-				continue;
-			perror("Select failed");
-			break;
-		}
-
-		length = read (softFD, buf, maxBufferSize - 1);
-		if (length < 0) {
-			perror("Read from softsynth failed");
-			break;
-		}
-		*(buf+length) = 0;
-		process_data (s, buf, length);
-	}
-}
 
 int espeakup_is_running(void)
 {

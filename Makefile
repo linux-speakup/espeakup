@@ -8,7 +8,9 @@ BINDIR = $(PREFIX)/bin
 LDLIBS = -lespeak
 
 SRCS = \
-	espeakup.c 
+	espeakup.c  \
+		softsynth.c \
+	synth.c
 
 OBJS = $(SRCS:.c=.o)
 
