@@ -18,7 +18,6 @@
  */
 
 #include <errno.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +36,6 @@ const char *shortOptions = "dhv";
 const char *pidPath = "/var/run/espeakup.pid";
 
 int debug = 0;
-int softFD;
 
 int espeakup_is_running(void)
 {
@@ -76,7 +74,7 @@ void espeakup_sighandler(int sig)
 	
 	/* shutdown espeak and close the softsynth */
 	espeak_Terminate();
-	close(softFD);
+	close_softsynth();
 
 	if (! debug)
 		unlink(pidPath);
@@ -153,11 +151,7 @@ int main(int argc, char **argv)
 	}
 
 	/* open the softsynth. */
-	softFD = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
-	if (softFD < 0) {
-		perror("Unable to open the softsynth device");
-		return 3;
-	}
+	open_softsynth();
 
 	/* initialize espeak */
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);

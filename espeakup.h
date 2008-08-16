@@ -33,7 +33,6 @@ struct synth_t {
 };
 
 extern int debug;
-extern int softFD;
 
 extern int SynthCallback(short *wav, int numsamples, espeak_EVENT *events);
 extern espeak_ERROR set_frequency (struct synth_t *s);
@@ -43,6 +42,8 @@ extern espeak_ERROR set_voice(struct synth_t *s);
 extern espeak_ERROR set_volume (struct synth_t *s);
 extern espeak_ERROR stop_speech(void);
 extern espeak_ERROR speak_text(struct synth_t *s);
+extern void open_softsynth(void);
+extern void close_softsynth(void);
 extern void main_loop (struct synth_t *s);
 
 #endif

@@ -18,6 +18,7 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +27,8 @@
 
 /* max buffer size */
 const int maxBufferSize = 1025;
+
+static int softFD = 0;
 
 static int process_command(struct synth_t *s, char *buf, int start)
 {
@@ -116,6 +119,20 @@ static void process_buffer (struct synth_t *s, char *buf, size_t length)
 		else
 			start = length;
 	}
+}
+
+void open_softsynth(void)
+{
+	softFD = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
+	if (softFD < 0) {
+		perror("Unable to open the softsynth device");
+		exit(3);
+	}
+}
+
+void close_softsynth(void)
+{
+	close(softFD);
 }
 
 void main_loop (struct synth_t *s)
