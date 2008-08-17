@@ -64,21 +64,18 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		switch (*cp) {
 		case 'f':
 			cmd = CMD_SET_FREQUENCY;
-			cp++;
 			break;
 		case 'p':
 			cmd = CMD_SET_PITCH;
-			cp++;
 			break;
 		case 's':
 			cmd = CMD_SET_RATE;
-			cp++;
 			break;
 		case 'v':
 			cmd = CMD_SET_VOLUME;
-			cp++;
 			break;
 		}
+		cp++;
 		break;
 	case 24:
 		cmd = CMD_FLUSH;
@@ -91,8 +88,10 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		cp++;
 		break;
 	}
+
 	if (cmd != CMD_FLUSH && cmd != CMD_UNKNOWN)
 		queue_add_cmd(cmd, adj, value);
+
 	return cp - (buf + start);
 }
 
