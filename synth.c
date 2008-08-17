@@ -31,7 +31,7 @@ int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
 	return 0;
 }
 
-espeak_ERROR set_frequency (struct synth_t *s, int freq, enum adjust_t adj)
+espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -45,7 +45,7 @@ espeak_ERROR set_frequency (struct synth_t *s, int freq, enum adjust_t adj)
 	return rc;
 }
 
-espeak_ERROR set_pitch (struct synth_t *s, int pitch, enum adjust_t adj)
+espeak_ERROR set_pitch(struct synth_t *s, int pitch, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -59,7 +59,7 @@ espeak_ERROR set_pitch (struct synth_t *s, int pitch, enum adjust_t adj)
 	return rc;
 }
 
-espeak_ERROR set_rate (struct synth_t *s, int rate, enum adjust_t adj)
+espeak_ERROR set_rate(struct synth_t *s, int rate, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -78,14 +78,19 @@ espeak_ERROR set_voice(struct synth_t *s)
 	return (espeak_SetVoiceByName(s->voice));
 }
 
-espeak_ERROR set_volume (struct synth_t *s, int vol, enum adjust_t adj)
+espeak_ERROR set_volume(struct synth_t *s, int vol, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
-
+	if (adj == ADJ_DEC)
+		vol = -vol;
+	if (adj != ADJ_SET)
+		vol += s->volume;
 	rc = espeak_SetParameter(espeakVOLUME, (vol+1) * volumeMultiplier, 0);
 	if (rc == EE_OK)
 		s->volume = vol;
+	
+	return rc;
 }
 
 espeak_ERROR stop_speech(void)
