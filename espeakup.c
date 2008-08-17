@@ -35,6 +35,12 @@ const char *shortOptions = "dhv";
 /* path to our pid file */
 const char *pidPath = "/var/run/espeakup.pid";
 
+/* default voice settings */
+const int defaultFrequency = 5;
+const int defaultPitch = 5;
+const int defaultRate = 5;
+const int defaultVolume = 5;
+
 int debug = 0;
 
 int espeakup_is_running(void)
@@ -123,13 +129,7 @@ void process_cli(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	struct synth_t s = {
-		.frequency = 5,
-		.pitch = 5,
-		.rate = 5,
-		.voice = "default",
-		.volume = 5,
-	};
+	struct synth_t s;
 
 	/* process command line options */
 	process_cli(argc, argv);
@@ -158,11 +158,10 @@ int main(int argc, char **argv)
 	espeak_SetSynthCallback(SynthCallback);
 
 	/* Setup initial voice parameters */
-	set_voice(&s);
-	set_frequency (&s);
-	set_pitch (&s);
-	set_rate (&s);
-	set_volume(&s);
+	set_frequency (&s, defaultFrequency, ADJ_SET);
+	set_pitch (&s, defaultPitch, ADJ_SET);
+	set_rate (&s, defaultRate, ADJ_SET);
+	set_volume(&s, defaultVolume, ADJ_SET);
 
 	/* register signal handler */
 	signal(SIGINT, espeakup_sighandler);

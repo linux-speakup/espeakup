@@ -31,19 +31,46 @@ int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
 	return 0;
 }
 
-espeak_ERROR set_frequency (struct synth_t *s)
+espeak_ERROR set_frequency (struct synth_t *s, int freq, enum adjust_t adj)
 {
-	return (espeak_SetParameter(espeakRANGE, s->frequency * frequencyMultiplier, 0));
+	espeak_ERROR rc;
+
+	if (adj == ADJ_DEC)
+		freq = -freq;
+	if (adj != ADJ_SET)
+		freq += s->frequency;
+	rc = espeak_SetParameter(espeakRANGE, freq * frequencyMultiplier, 0);
+	if (rc == EE_OK)
+		s->frequency = freq;
+	return rc;
 }
 
-espeak_ERROR set_pitch (struct synth_t *s)
+espeak_ERROR set_pitch (struct synth_t *s, int pitch, enum adjust_t adj)
 {
-	return (espeak_SetParameter(espeakPITCH, s->pitch * pitchMultiplier, 0));
+	espeak_ERROR rc;
+
+	if (adj == ADJ_DEC)
+		pitch = -pitch;
+	if (adj != ADJ_SET)
+		pitch += s->pitch;
+	rc = espeak_SetParameter(espeakPITCH, pitch * pitchMultiplier, 0);
+	if (rc == EE_OK)
+		s->pitch = pitch;
+	return rc;
 }
 
-espeak_ERROR set_rate (struct synth_t *s)
+espeak_ERROR set_rate (struct synth_t *s, int rate, enum adjust_t adj)
 {
-	return (espeak_SetParameter(espeakRATE, s->rate * rateMultiplier + rateOffset, 0));
+	espeak_ERROR rc;
+
+	if (adj == ADJ_DEC)
+		rate = -rate;
+	if (adj != ADJ_SET)
+		rate += s->rate;
+	rc = espeak_SetParameter(espeakRATE, rate * rateMultiplier + rateOffset, 0);
+	if (rc == EE_OK)
+		s->rate = rate;
+	return rc;
 }
 
 espeak_ERROR set_voice(struct synth_t *s)
@@ -51,9 +78,14 @@ espeak_ERROR set_voice(struct synth_t *s)
 	return (espeak_SetVoiceByName(s->voice));
 }
 
-espeak_ERROR set_volume (struct synth_t *s)
+espeak_ERROR set_volume (struct synth_t *s, int vol, enum adjust_t adj)
 {
-	return (espeak_SetParameter(espeakVOLUME, (s->volume+1) * volumeMultiplier, 0));
+	espeak_ERROR rc;
+
+
+	rc = espeak_SetParameter(espeakVOLUME, (vol+1) * volumeMultiplier, 0);
+	if (rc == EE_OK)
+		s->volume = vol;
 }
 
 espeak_ERROR stop_speech(void)

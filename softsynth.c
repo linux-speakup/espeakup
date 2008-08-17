@@ -26,72 +26,74 @@
 #include "espeakup.h"
 
 /* max buffer size */
-const int maxBufferSize = 1025;
+const size_t maxBufferSize = 1025;
 
 static int softFD = 0;
 
 static int process_command(struct synth_t *s, char *buf, int start)
 {
-	int rc;
-	char value;
-	char param;
+	char *cp;
+	int value;
+	enum adjust_t adj;
+	enum command_t cmd;
 	
-	rc = 1;
-	switch (buf[start]) {
+	cp = buf+start;
+	switch (*cp) {
 	case 1:
-		if (buf[start+1] == '+' || buf[start+1] == '-') {
-			value = buf[start+2]-'0';
-			param = buf[start+3];
-			if (buf[start+1] == '-')
-				value = -value;
-			switch (param) {
-			case 'f':
-				s->frequency += value;
-				set_frequency (s);
-				break;
-			case 'p':
-				s->pitch += value;
-				set_pitch (s);
-				break;
-			case 's':
-				s->rate += value;
-				set_rate (s);
-				break;
-			case 'v':
-				s->volume += value;
-				set_volume (s);
-				break;
-			}
-			rc = 4;
-		} else if (buf[start+1] >= '0' && buf[start+1] <= '9') {
-			value = buf[start+1]-'0';
-			param = buf[start+2];
-			switch (param) {
-			case 'f':
-				s->frequency = value;
-				set_frequency (s);
-				break;
-			case 'p':
-				s->pitch = value;
-				set_pitch (s);
-				break;
-			case 's':
-				s->rate = value;
-				set_rate (s);
-				break;
-			case 'v':
-				s->volume = value;
-				set_volume (s);
-				break;
-			}
+		cp++;
+		switch (*cp) {
+		case '+':
+			adj = ADJ_INC;
+			cp++;
+			break;
+		case '-':
+			adj = ADJ_DEC;
+			cp++;
+			break;
+		default:
+			adj = ADJ_SET;
+			break;
 		}
-		rc = 3;
+
+		value = 0;
+		while(isdigit(*cp)) {
+			value = value * 10 + (*cp - '0');
+			cp++;
+		}
+
+		switch (*cp) {
+		case 'f':
+			cmd = CMD_SET_FREQUENCY;
+			cp++;
+			break;
+		case 'p':
+			cmd = CMD_SET_PITCH;
+			cp++;
+			break;
+		case 's':
+			cmd = CMD_SET_RATE;
+			cp++;
+			break;
+		case 'v':
+			cmd = CMD_SET_VOLUME;
+			cp++;
+			break;
+		}
 		break;
 	case 24:
+		cmd = CMD_FLUSH;
 		stop_speech();
+		queue_clear();
+		cp++;
+		break;
+	default:
+		cmd = CMD_UNKNOWN;
+		cp++;
 		break;
 	}
-	return rc;
+	if (cmd != CMD_FLUSH && cmd != CMD_UNKNOWN)
+		queue_add_cmd(cmd, adj, value);
+	return cp - (buf + start);
 }
 
 static void process_buffer (struct synth_t *s, char *buf, size_t length)
@@ -110,9 +112,7 @@ static void process_buffer (struct synth_t *s, char *buf, size_t length)
 			txtLen = end-start;
 			strncpy (txtBuf, buf + start, txtLen);
 			*(txtBuf+txtLen) = 0;
-			s->buf = txtBuf;
-			s->len = txtLen;
-			speak_text(s);
+			queue_add_text(txtBuf, txtLen);
 		}
 		if (end < length)
 			start = end = end+process_command (s, buf, end);
@@ -141,11 +141,13 @@ void main_loop (struct synth_t *s)
 	int i;
 	size_t length;
 	char buf[maxBufferSize];
+	struct timeval tv = {0, 0};
 	
 	while (1) {
+		queue_process_entry(s);
 		FD_ZERO (&set);
 		FD_SET (softFD, &set);
-		i = select (softFD+1, &set, NULL, NULL, NULL);
+		i = select (softFD+1, &set, NULL, NULL, &tv);
 		if (i < 0) {
 			if (errno == EINTR)
 				continue;
@@ -153,8 +155,12 @@ void main_loop (struct synth_t *s)
 			break;
 		}
 
+		if (! FD_ISSET(softFD, &set))
+			continue;
 		length = read (softFD, buf, maxBufferSize - 1);
 		if (length < 0) {
+			if (errno == EAGAIN || errno == EINTR)
+				continue;
 			perror("Read from softsynth failed");
 			break;
 		}

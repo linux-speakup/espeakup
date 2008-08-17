@@ -22,6 +22,23 @@
 
 #include <espeak/speak_lib.h>
 
+enum command_t {
+	CMD_SET_FREQUENCY,
+	CMD_SET_PITCH,
+	CMD_SET_RATE,
+	CMD_SET_VOICE,
+	CMD_SET_VOLUME,
+	CMD_SPEAK_TEXT,
+	CMD_FLUSH,
+	CMD_UNKNOWN,
+};
+
+enum adjust_t {
+	ADJ_DEC,
+	ADJ_SET,
+	ADJ_INC,
+};
+
 struct synth_t {
 	int frequency;
 	int pitch;
@@ -35,11 +52,11 @@ struct synth_t {
 extern int debug;
 
 extern int SynthCallback(short *wav, int numsamples, espeak_EVENT *events);
-extern espeak_ERROR set_frequency (struct synth_t *s);
-extern espeak_ERROR set_pitch (struct synth_t *s);
-extern espeak_ERROR set_rate (struct synth_t *s);
+extern espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj);
+extern espeak_ERROR set_pitch (struct synth_t *s, int pitch, enum adjust_t adj);
+extern espeak_ERROR set_rate (struct synth_t *s, int rate, enum adjust_t adj);
 extern espeak_ERROR set_voice(struct synth_t *s);
-extern espeak_ERROR set_volume (struct synth_t *s);
+extern espeak_ERROR set_volume (struct synth_t *s, int vol, enum adjust_t adj);
 extern espeak_ERROR stop_speech(void);
 extern espeak_ERROR speak_text(struct synth_t *s);
 extern void open_softsynth(void);
