@@ -20,6 +20,9 @@
 #ifndef __ESPEAKUP_H
 #define __ESPEAKUP_H
 
+/* This was added for gcc 4.3 */
+#include <stddef.h>
+
 #include <espeak/speak_lib.h>
 
 enum command_t {
