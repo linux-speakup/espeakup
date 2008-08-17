@@ -10,7 +10,6 @@ SRCS = \
 
 OBJS = $(SRCS:.c=.o)
 
-CFLAGS = -ggdb
 LDLIBS = -lespeak
 
 PREFIX = /usr
