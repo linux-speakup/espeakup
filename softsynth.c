@@ -95,7 +95,7 @@ static int process_command(struct synth_t *s, char *buf, int start)
 	return cp - (buf + start);
 }
 
-static void process_buffer (struct synth_t *s, char *buf, size_t length)
+static void process_buffer (struct synth_t *s, char *buf, ssize_t length)
 {
 	int start;
 	int end;
@@ -136,26 +136,12 @@ void close_softsynth(void)
 
 void main_loop (struct synth_t *s)
 {
-	fd_set set;
-	int i;
-	size_t length;
+	ssize_t length;
 	char buf[maxBufferSize];
-	struct timeval tv = {0, 0};
 	
 	while (1) {
 		queue_process_entry(s);
-		FD_ZERO (&set);
-		FD_SET (softFD, &set);
-		i = select (softFD+1, &set, NULL, NULL, &tv);
-		if (i < 0) {
-			if (errno == EINTR)
-				continue;
-			perror("Select failed");
-			break;
-		}
 
-		if (! FD_ISSET(softFD, &set))
-			continue;
 		length = read (softFD, buf, maxBufferSize - 1);
 		if (length < 0) {
 			if (errno == EAGAIN || errno == EINTR)
