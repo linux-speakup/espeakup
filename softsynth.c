@@ -175,7 +175,6 @@ void main_loop (struct synth_t *s)
 				j = length-i;
 				for(length = 0; length < j; length++)
 					*(buf+length) = *(buf+i++);
-				*(buf+length) = 0;
 				break;
 			}
 		*(buf+length) = 0;
