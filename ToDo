@@ -1,9 +1,5 @@
 This file contains a list of improvements that need to be made to
 espeakup.
 
-Currently there is a known issue with data being dropped during long
-output.  I am planning on implementing a queueing algorithm for the data
-read from softsynth to fix this.
-
 Voice and language support should be added at some point.
 
