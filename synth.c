@@ -22,7 +22,7 @@
 /* multipliers and offsets */
 const int frequencyMultiplier = 11;
 const int pitchMultiplier = 11;
-const int rateMultiplier = 32;
+const int rateMultiplier = 34;
 const int rateOffset = 80;
 const int volumeMultiplier = 11;
 
