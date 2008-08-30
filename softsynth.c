@@ -139,6 +139,7 @@ void main_loop (struct synth_t *s)
 	fd_set set;
 	struct timeval tv;
 	int i;
+	int j;
 	ssize_t length;
 	char buf[maxBufferSize];
 	
@@ -167,6 +168,16 @@ void main_loop (struct synth_t *s)
 			perror("Read from softsynth failed");
 			break;
 		}
+		for(i = length; i > 0; i--)
+			if (*(buf+i) == 0x18) { /* synth flush char. */
+				queue_clear();
+				stop_speech();
+				j = length-i;
+				for(length = 0; length < j; length++)
+					*(buf+length) = *(buf+i++);
+				*(buf+length) = 0;
+				break;
+			}
 		*(buf+length) = 0;
 		process_buffer (s, buf, length);
 	}
