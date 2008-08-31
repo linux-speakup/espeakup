@@ -23,7 +23,7 @@
 const int frequencyMultiplier = 11;
 const int pitchMultiplier = 11;
 const int rateMultiplier = 34;
-const int rateOffset = 80;
+const int rateOffset = 84;
 const int volumeMultiplier = 11;
 
 int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
