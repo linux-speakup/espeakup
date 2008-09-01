@@ -40,9 +40,9 @@ static void queue_add(struct queue_entry_t *entry)
 {
 	assert(entry);
 	entry->next = NULL;
-	if (! last)
+	if (!last)
 		last = entry;
-	if (! first) {
+	if (!first) {
 		first = entry;
 	} else {
 		first->next = entry;
@@ -60,13 +60,13 @@ static void queue_remove(void)
 	if (temp->cmd == CMD_SPEAK_TEXT)
 		free(temp->buf);
 	free(temp);
-	if (! last)
+	if (!last)
 		first = last;
 }
 
 void queue_clear(void)
 {
-	while(last)
+	while (last)
 		queue_remove();
 }
 
@@ -75,7 +75,7 @@ void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 	struct queue_entry_t *entry;
 
 	entry = malloc(sizeof(struct queue_entry_t));
-	if (! entry) {
+	if (!entry) {
 		perror("unable to allocate memory for queue entry");
 		return;
 	}
@@ -90,14 +90,14 @@ void queue_add_text(char *txt, size_t length)
 	struct queue_entry_t *entry;
 
 	entry = malloc(sizeof(struct queue_entry_t));
-	if (! entry) {
+	if (!entry) {
 		perror("unable to allocate memory for queue entry");
 		return;
 	}
 	entry->cmd = CMD_SPEAK_TEXT;
 	entry->adjust = ADJ_SET;
 	entry->buf = strdup(txt);
-	if (! entry->buf) {
+	if (!entry->buf) {
 		perror("unable to allocate space for text");
 		free(entry);
 		return;
@@ -110,7 +110,7 @@ void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
 
-	if(! last)
+	if (!last)
 		return;
 
 	switch (last->cmd) {

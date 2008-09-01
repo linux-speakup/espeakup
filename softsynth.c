@@ -36,8 +36,8 @@ static int process_command(struct synth_t *s, char *buf, int start)
 	int value;
 	enum adjust_t adj;
 	enum command_t cmd;
-	
-	cp = buf+start;
+
+	cp = buf + start;
 	switch (*cp) {
 	case 1:
 		cp++;
@@ -56,7 +56,7 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		}
 
 		value = 0;
-		while(isdigit(*cp)) {
+		while (isdigit(*cp)) {
 			value = value * 10 + (*cp - '0');
 			cp++;
 		}
@@ -89,7 +89,7 @@ static int process_command(struct synth_t *s, char *buf, int start)
 	return cp - (buf + start);
 }
 
-static void process_buffer (struct synth_t *s, char *buf, ssize_t length)
+static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 {
 	int start;
 	int end;
@@ -102,13 +102,13 @@ static void process_buffer (struct synth_t *s, char *buf, ssize_t length)
 		while (buf[end] >= 32 && end < length)
 			end++;
 		if (end != start) {
-			txtLen = end-start;
-			strncpy (txtBuf, buf + start, txtLen);
-			*(txtBuf+txtLen) = 0;
+			txtLen = end - start;
+			strncpy(txtBuf, buf + start, txtLen);
+			*(txtBuf + txtLen) = 0;
 			queue_add_text(txtBuf, txtLen);
 		}
 		if (end < length)
-			start = end = end+process_command (s, buf, end);
+			start = end = end + process_command(s, buf, end);
 		else
 			start = length;
 	}
@@ -116,7 +116,7 @@ static void process_buffer (struct synth_t *s, char *buf, ssize_t length)
 
 void open_softsynth(void)
 {
-	softFD = open ("/dev/softsynth", O_RDWR | O_NONBLOCK);
+	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0) {
 		perror("Unable to open the softsynth device");
 		exit(3);
@@ -128,7 +128,7 @@ void close_softsynth(void)
 	close(softFD);
 }
 
-void main_loop (struct synth_t *s)
+void main_loop(struct synth_t *s)
 {
 	fd_set set;
 	struct timeval tv;
@@ -136,42 +136,42 @@ void main_loop (struct synth_t *s)
 	int j;
 	ssize_t length;
 	char buf[maxBufferSize];
-	
+
 	while (1) {
 		queue_process_entry(s);
 
-		FD_ZERO (&set);
-		FD_SET (softFD, &set);
+		FD_ZERO(&set);
+		FD_SET(softFD, &set);
 		tv.tv_sec = 0;
 		tv.tv_usec = 500;
-		i = select (softFD+1, &set, NULL, NULL, &tv);
+		i = select(softFD + 1, &set, NULL, NULL, &tv);
 		if (i < 0) {
 			if (errno == EINTR)
 				continue;
 			perror("Select failed");
 			break;
 		}
- 
-		if (! FD_ISSET(softFD, &set))
+
+		if (!FD_ISSET(softFD, &set))
 			continue;
 
-		length = read (softFD, buf, maxBufferSize - 1);
+		length = read(softFD, buf, maxBufferSize - 1);
 		if (length < 0) {
 			if (errno == EAGAIN || errno == EINTR)
 				continue;
 			perror("Read from softsynth failed");
 			break;
 		}
-		*(buf+length) = 0;
-		for(i = length; i >= 0; i--)
-			if (*(buf+i) == 0x18) { /* synth flush char. */
+		*(buf + length) = 0;
+		for (i = length; i >= 0; i--)
+			if (*(buf + i) == 0x18) {	/* synth flush char. */
 				queue_clear();
 				stop_speech();
-				j = length-i;
-				for(length = 0; length <= j; length++)
-					*(buf+length) = *(buf+i++);
+				j = length - i;
+				for (length = 0; length <= j; length++)
+					*(buf + length) = *(buf + i++);
 				break;
 			}
-		process_buffer (s, buf, length);
+		process_buffer(s, buf, length);
 	}
 }

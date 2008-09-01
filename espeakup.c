@@ -54,7 +54,7 @@ int espeakup_is_running(void)
 	if (pidFile) {
 		fscanf(pidFile, "%d", &pid);
 		fclose(pidFile);
-		if (! kill(pid, 0) || errno != ESRCH)
+		if (!kill(pid, 0) || errno != ESRCH)
 			rc = 1;
 	}
 	return rc;
@@ -65,19 +65,19 @@ int create_pid_file(void)
 	FILE *pidFile;
 
 	pidFile = fopen(pidPath, "w");
-	if (! pidFile)
+	if (!pidFile)
 		return -1;
 
 	fprintf(pidFile, "%d\n", getpid());
 	fclose(pidFile);
 	return 0;
 }
- 
+
 void espeakup_sighandler(int sig)
 {
 	if (debug)
 		printf("Caught signal %i\n", sig);
-	
+
 	/* clear the queue */
 	queue_clear();
 
@@ -85,7 +85,7 @@ void espeakup_sighandler(int sig)
 	espeak_Terminate();
 	close_softsynth();
 
-	if (! debug)
+	if (!debug)
 		unlink(pidPath);
 	exit(0);
 }
@@ -113,7 +113,7 @@ void process_cli(int argc, char **argv)
 	int opt;
 
 	while ((opt = getopt(argc, argv, shortOptions)) != -1) {
-		switch(opt) {
+		switch (opt) {
 		case 'd':
 			debug = 1;
 			break;
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 	/* process command line options */
 	process_cli(argc, argv);
 
-	if (! debug) {
+	if (!debug) {
 		if (espeakup_is_running()) {
 			printf("Espeakup is already running!\n");
 			return 1;
@@ -161,9 +161,9 @@ int main(int argc, char **argv)
 	espeak_SetSynthCallback(SynthCallback);
 
 	/* Setup initial voice parameters */
-	set_frequency (&s, defaultFrequency, ADJ_SET);
-	set_pitch (&s, defaultPitch, ADJ_SET);
-	set_rate (&s, defaultRate, ADJ_SET);
+	set_frequency(&s, defaultFrequency, ADJ_SET);
+	set_pitch(&s, defaultPitch, ADJ_SET);
+	set_rate(&s, defaultRate, ADJ_SET);
 	set_volume(&s, defaultVolume, ADJ_SET);
 
 	/* register signal handler */
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 	signal(SIGTERM, espeakup_sighandler);
 
 	/* run the main loop */
-	main_loop (&s);
+	main_loop(&s);
 
 	return 0;
 }

@@ -26,12 +26,12 @@ const int rateMultiplier = 34;
 const int rateOffset = 84;
 const int volumeMultiplier = 11;
 
-int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
+int SynthCallback(short *wav, int numsamples, espeak_EVENT * events)
 {
 	return 0;
 }
 
-espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj)
+espeak_ERROR set_frequency(struct synth_t * s, int freq, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -45,7 +45,7 @@ espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj)
 	return rc;
 }
 
-espeak_ERROR set_pitch(struct synth_t *s, int pitch, enum adjust_t adj)
+espeak_ERROR set_pitch(struct synth_t * s, int pitch, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -59,7 +59,7 @@ espeak_ERROR set_pitch(struct synth_t *s, int pitch, enum adjust_t adj)
 	return rc;
 }
 
-espeak_ERROR set_rate(struct synth_t *s, int rate, enum adjust_t adj)
+espeak_ERROR set_rate(struct synth_t * s, int rate, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -67,18 +67,19 @@ espeak_ERROR set_rate(struct synth_t *s, int rate, enum adjust_t adj)
 		rate = -rate;
 	if (adj != ADJ_SET)
 		rate += s->rate;
-	rc = espeak_SetParameter(espeakRATE, rate * rateMultiplier + rateOffset, 0);
+	rc = espeak_SetParameter(espeakRATE,
+							 rate * rateMultiplier + rateOffset, 0);
 	if (rc == EE_OK)
 		s->rate = rate;
 	return rc;
 }
 
-espeak_ERROR set_voice(struct synth_t *s)
+espeak_ERROR set_voice(struct synth_t * s)
 {
 	return (espeak_SetVoiceByName(s->voice));
 }
 
-espeak_ERROR set_volume(struct synth_t *s, int vol, enum adjust_t adj)
+espeak_ERROR set_volume(struct synth_t * s, int vol, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -86,10 +87,11 @@ espeak_ERROR set_volume(struct synth_t *s, int vol, enum adjust_t adj)
 		vol = -vol;
 	if (adj != ADJ_SET)
 		vol += s->volume;
-	rc = espeak_SetParameter(espeakVOLUME, (vol+1) * volumeMultiplier, 0);
+	rc = espeak_SetParameter(espeakVOLUME, (vol + 1) * volumeMultiplier,
+							 0);
 	if (rc == EE_OK)
 		s->volume = vol;
-	
+
 	return rc;
 }
 
@@ -98,10 +100,11 @@ espeak_ERROR stop_speech(void)
 	return (espeak_Cancel());
 }
 
-espeak_ERROR speak_text(struct synth_t *s)
+espeak_ERROR speak_text(struct synth_t * s)
 {
 	espeak_ERROR rc;
 
-	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL, NULL);
+	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL,
+					  NULL);
 	return rc;
 }
