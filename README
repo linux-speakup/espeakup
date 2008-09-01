@@ -20,6 +20,10 @@ is beyond the scope of this document.
 Installation
 ============
 
+The preferred way to install espeakup is using your distribution's
+packaging system, but if your distribution does not have a package for
+espeakup yet, here are some basic instructions.
+
 To install espeakup, first cd into the directory where you
 unpacked the tarball, then issue make to compile the program.  Once this
 is done, as root, issue make install.  This will install espeakup in /usr/bin.
@@ -28,10 +32,18 @@ Starting Up
 ===========
 
 This program should be run after speakup is set up to communicate with a
-software synthesizer and after /dev/softsynth exists.  Currently it does
-not accept any command line options, so invoke it as follows:
+software synthesizer and after /dev/softsynth exists.  The way this is
+done is distribution specific, so it is beyond the scope of this
+documentation.
 
-/usr/sbin/espeakup
+Command Line Options
+====================
+
+Espeakup currently accepts the following command line options:
+
+-d	Debug mode (stay in the foreground)
+-h	Show this help
+-v	Display the software version.
 
 Questions
 =========
