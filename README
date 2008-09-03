@@ -41,9 +41,9 @@ Command Line Options
 
 Espeakup currently accepts the following command line options:
 
--d	Debug mode (stay in the foreground)
--h	Show this help
--v	Display the software version.
+--debug, -d	Debug mode (stay in the foreground)
+--help, -h	Show help
+--version, -v	Display the software version.
 
 Questions
 =========
