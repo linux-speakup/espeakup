@@ -3,6 +3,7 @@ INSTALL = /usr/bin/install
 RM = /bin/rm -f
 
 SRCS = \
+	cli.c \
 	espeakup.c  \
 	queue.c \
 		softsynth.c \
@@ -33,7 +34,7 @@ ifeq ("$(origin TAG)", "command line")
 TIMESTAMP := _p$(shell date +%Y%m%d)
 endif
 
-VERSION := $(shell grep 'Version.*=' espeakup.c | sed 's/.*"\(.*\)";/\1/')
+VERSION := $(shell grep 'Version.*=' cli.c | sed 's/.*"\(.*\)";/\1/')
 TAG := v$(VERSION)
 TARPREFIX := espeakup-$(VERSION)
 TARFILE := $(TARPREFIX)$(TIMESTAMP).tar

@@ -54,6 +54,7 @@ struct synth_t {
 
 extern int debug;
 
+extern void process_cli(int argc, char **argv);
 extern void queue_clear(void);
 extern void queue_add_cmd(enum command_t cmd, enum adjust_t adj,
 						  int value);

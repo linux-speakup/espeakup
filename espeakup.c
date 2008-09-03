@@ -26,12 +26,6 @@
 
 #include "espeakup.h"
 
-/* program version */
-const char *Version = "0.2";
-
-/* command line options */
-const char *shortOptions = "dhv";
-
 /* path to our pid file */
 const char *pidPath = "/var/run/espeakup.pid";
 
@@ -88,46 +82,6 @@ void espeakup_sighandler(int sig)
 	if (!debug)
 		unlink(pidPath);
 	exit(0);
-}
-
-void show_help()
-{
-	printf("Usage:  espeakup [-d] [-h] [-v]\n\n");
-	printf("-d\tDebug mode (stay in the foreground)\n");
-	printf("-h\tShow this help\n");
-	printf("-v\tDisplay the software version.\n");
-	exit(0);
-}
-
-void show_version(void)
-{
-	printf("espeakup %s\n", Version);
-	printf("Copyright (C) 2008 William Hubbs\n");
-	printf("License GPLv3+: GNU GPL version 3 or later\n");
-	printf("You are free to change and redistribute this software.\n");
-	exit(0);
-}
-
-void process_cli(int argc, char **argv)
-{
-	int opt;
-
-	while ((opt = getopt(argc, argv, shortOptions)) != -1) {
-		switch (opt) {
-		case 'd':
-			debug = 1;
-			break;
-		case 'h':
-			show_help();
-			break;
-		case 'v':
-			show_version();
-			break;
-		default:
-			show_help();
-			break;
-		}
-	}
 }
 
 int main(int argc, char **argv)
