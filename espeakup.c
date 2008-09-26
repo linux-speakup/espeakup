@@ -75,7 +75,7 @@ void espeakup_sighandler(int sig)
 	/* clear the queue */
 	queue_clear();
 
-	/* shutdown espeak and close the softsynth */
+	/* shut down espeak and close the softsynth */
 	espeak_Terminate();
 	close_softsynth();
 
