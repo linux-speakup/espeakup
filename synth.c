@@ -17,6 +17,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 #include "espeakup.h"
 
 /* multipliers and offsets */
@@ -74,9 +76,14 @@ espeak_ERROR set_rate(struct synth_t * s, int rate, enum adjust_t adj)
 	return rc;
 }
 
-espeak_ERROR set_voice(struct synth_t * s)
+espeak_ERROR set_voice(struct synth_t * s, char *voice)
 {
-	return (espeak_SetVoiceByName(s->voice));
+	espeak_ERROR rc;
+
+	rc = espeak_SetVoiceByName(voice);
+	if (rc == EE_OK)
+		strcpy(s->voice, voice);
+	return rc;
 }
 
 espeak_ERROR set_volume(struct synth_t * s, int vol, enum adjust_t adj)

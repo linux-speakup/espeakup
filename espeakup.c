@@ -86,7 +86,9 @@ void espeakup_sighandler(int sig)
 
 int main(int argc, char **argv)
 {
-	struct synth_t s;
+	struct synth_t s = {
+		.voice = "",
+	};
 
 	/* process command line options */
 	process_cli(argc, argv);

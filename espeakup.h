@@ -46,7 +46,7 @@ struct synth_t {
 	int frequency;
 	int pitch;
 	int rate;
-	char *voice;
+	char voice[10];
 	int volume;
 	char *buf;
 	int len;
@@ -68,7 +68,7 @@ extern espeak_ERROR set_pitch(struct synth_t *s, int pitch,
 							  enum adjust_t adj);
 extern espeak_ERROR set_rate(struct synth_t *s, int rate,
 							 enum adjust_t adj);
-extern espeak_ERROR set_voice(struct synth_t *s);
+extern espeak_ERROR set_voice(struct synth_t *s, char *voice);
 extern espeak_ERROR set_volume(struct synth_t *s, int vol,
 							   enum adjust_t adj);
 extern espeak_ERROR stop_speech(void);
