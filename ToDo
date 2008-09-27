@@ -2,4 +2,10 @@ This file contains a list of improvements that need to be made to
 espeakup.
 
 Voice and language support should be added at some point.
+This will consist of the following:
+- add a function which will allow switching voices.  (completed on 9/27)
+- add a function/command which will allow speakup to find out which
+  voices espeak supports.
+- define and add the command to speakup which will allow it to switch
+  voices.
 
