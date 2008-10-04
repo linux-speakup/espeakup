@@ -163,7 +163,8 @@ void main_loop(struct synth_t *s)
 			break;
 		}
 		*(buf + length) = 0;
-		for (i = length; i >= 0; i--)
+		/* *(buf+length) is not 0x18 */
+		for (i = length - 1; i >= 0; i--)
 			if (*(buf + i) == 0x18) {	/* synth flush char. */
 				queue_clear();
 				stop_speech();
