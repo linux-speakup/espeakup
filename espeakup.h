@@ -60,8 +60,6 @@ extern void queue_add_cmd(enum command_t cmd, enum adjust_t adj,
 						  int value);
 extern void queue_add_text(char *txt, size_t length);
 extern void queue_process_entry(struct synth_t *s);
-extern int SynthCallback(short *wav, int numsamples,
-						 espeak_EVENT * events);
 extern espeak_ERROR set_frequency(struct synth_t *s, int freq,
 								  enum adjust_t adj);
 extern espeak_ERROR set_pitch(struct synth_t *s, int pitch,

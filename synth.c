@@ -28,11 +28,6 @@ const int rateMultiplier = 34;
 const int rateOffset = 84;
 const int volumeMultiplier = 22;
 
-int SynthCallback(short *wav, int numsamples, espeak_EVENT * events)
-{
-	return 0;
-}
-
 espeak_ERROR set_frequency(struct synth_t * s, int freq, enum adjust_t adj)
 {
 	espeak_ERROR rc;

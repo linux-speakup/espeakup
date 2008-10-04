@@ -114,7 +114,6 @@ int main(int argc, char **argv)
 
 	/* initialize espeak */
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
-	espeak_SetSynthCallback(SynthCallback);
 
 	/* Setup initial voice parameters */
 	set_frequency(&s, defaultFrequency, ADJ_SET);
