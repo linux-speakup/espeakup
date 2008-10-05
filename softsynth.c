@@ -28,6 +28,9 @@
 /* max buffer size */
 const size_t maxBufferSize = 1025;
 
+/* synth flush character */
+const int synthFlushChar = 0x18;
+
 static int softFD = 0;
 
 static int process_command(struct synth_t *s, char *buf, int start)
@@ -165,7 +168,7 @@ void main_loop(struct synth_t *s)
 		*(buf + length) = 0;
 		/* *(buf+length) is not 0x18 */
 		for (i = length - 1; i >= 0; i--)
-			if (*(buf + i) == 0x18) {	/* synth flush char. */
+			if (*(buf + i) == synthFlushChar) {
 				queue_clear();
 				stop_speech();
 				j = length - i;
