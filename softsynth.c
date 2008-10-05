@@ -147,8 +147,7 @@ void main_loop(struct synth_t *s)
 		FD_SET(softFD, &set);
 		tv.tv_sec = 0;
 		tv.tv_usec = 500;
-		i = select(softFD + 1, &set, NULL, NULL, &tv);
-		if (i < 0) {
+		if (select(softFD + 1, &set, NULL, NULL, &tv) < 0) {
 			if (errno == EINTR)
 				continue;
 			perror("Select failed");
