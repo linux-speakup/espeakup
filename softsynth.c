@@ -135,10 +135,9 @@ void main_loop(struct synth_t *s)
 {
 	fd_set set;
 	struct timeval tv;
-	int i;
-	int j;
 	ssize_t length;
 	char buf[maxBufferSize];
+	char *cp;
 
 	while (1) {
 		queue_process_entry(s);
@@ -165,16 +164,13 @@ void main_loop(struct synth_t *s)
 			break;
 		}
 		*(buf + length) = 0;
-		/* *(buf+length) is not 0x18 */
-		for (i = length - 1; i >= 0; i--)
-			if (*(buf + i) == synthFlushChar) {
-				queue_clear();
-				stop_speech();
-				j = length - i;
-				for (length = 0; length <= j; length++)
-					*(buf + length) = *(buf + i++);
-				break;
-			}
+		cp = strrchr(buf, synthFlushChar);
+		if (cp) {
+			queue_clear();
+			stop_speech();
+			strcpy(buf, cp+1);
+			length = strlen(buf);
+		}
 		process_buffer(s, buf, length);
 	}
 }
