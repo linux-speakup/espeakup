@@ -169,7 +169,7 @@ void main_loop(struct synth_t *s)
 			queue_clear();
 			stop_speech();
 			memmove(buf, cp+1, strlen(cp + 1) + 1);
-			length = strlen(buf);
+			length = strlen(buf) + 1;
 		}
 		process_buffer(s, buf, length);
 	}
