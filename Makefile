@@ -43,3 +43,13 @@ tarball:
 	git archive --format=tar --prefix=$(TARPREFIX)/ $(TAG) > $(TARFILE)
 	tar f $(TARFILE) --delete $(TARPREFIX)/.gitignore 
 	bzip2 $(TARFILE)
+
+cli.o: cli.c espeakup.h
+
+espeakup.o: espeakup.c espeakup.h
+
+queue.o: queue.c espeakup.h
+
+softsynth.o: softsynth.c espeakup.h
+
+synth.o: synth.c espeakup.h
