@@ -16,6 +16,15 @@ LDLIBS = -lespeak
 PREFIX = /usr
 BINDIR = $(PREFIX)/bin
 
+ifeq ("$(origin TAG)", "command line")
+TIMESTAMP := _p$(shell date +%Y%m%d)
+endif
+
+VERSION := $(shell grep 'Version.*=' cli.c | sed 's/.*"\(.*\)";/\1/')
+TAG := v$(VERSION)
+TARPREFIX := espeakup-$(VERSION)
+TARFILE := $(TARPREFIX)$(TIMESTAMP).tar
+
 all: espeakup
 
 install: espeakup
@@ -29,15 +38,6 @@ distclean: clean
 	$(RM) espeakup
 
 espeakup: $(OBJS)
-
-ifeq ("$(origin TAG)", "command line")
-TIMESTAMP := _p$(shell date +%Y%m%d)
-endif
-
-VERSION := $(shell grep 'Version.*=' cli.c | sed 's/.*"\(.*\)";/\1/')
-TAG := v$(VERSION)
-TARPREFIX := espeakup-$(VERSION)
-TARFILE := $(TARPREFIX)$(TIMESTAMP).tar
 
 tarball:
 	git archive --format=tar --prefix=$(TARPREFIX)/ $(TAG) > $(TARFILE)
