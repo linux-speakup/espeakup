@@ -65,6 +65,9 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		}
 
 		switch (*cp) {
+		case 'b':
+			cmd = CMD_SET_PUNCTUATION;
+			break;
 		case 'f':
 			cmd = CMD_SET_FREQUENCY;
 			break;

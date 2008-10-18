@@ -56,6 +56,20 @@ espeak_ERROR set_pitch(struct synth_t * s, int pitch, enum adjust_t adj)
 	return rc;
 }
 
+espeak_ERROR set_punctuation(struct synth_t * s, int punct, enum adjust_t adj)
+{
+	espeak_ERROR rc;
+
+	if (adj == ADJ_DEC)
+		punct = -punct;
+	if (adj != ADJ_SET)
+		punct += s->punct;
+	rc = espeak_SetParameter(espeakPUNCTUATION, punct, 0);
+	if (rc == EE_OK)
+		s->punct = punct;
+	return rc;
+}
+
 espeak_ERROR set_rate(struct synth_t * s, int rate, enum adjust_t adj)
 {
 	espeak_ERROR rc;

@@ -120,6 +120,9 @@ void queue_process_entry(struct synth_t *s)
 	case CMD_SET_PITCH:
 		error = set_pitch(s, last->value, last->adjust);
 		break;
+	case CMD_SET_PUNCTUATION:
+		error = set_punctuation(s, last->value, last->adjust);
+		break;
 	case CMD_SET_RATE:
 		error = set_rate(s, last->value, last->adjust);
 		break;
