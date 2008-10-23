@@ -80,6 +80,9 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		case 'v':
 			cmd = CMD_SET_VOLUME;
 			break;
+		default:
+			cmd = CMD_UNKNOWN;
+			break;
 		}
 		cp++;
 		break;
@@ -171,7 +174,7 @@ void main_loop(struct synth_t *s)
 		if (cp) {
 			queue_clear();
 			stop_speech();
-			memmove(buf, cp+1, strlen(cp + 1) + 1);
+			memmove(buf, cp + 1, strlen(cp + 1) + 1);
 			length = strlen(buf);
 		}
 		process_buffer(s, buf, length);
