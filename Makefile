@@ -14,6 +14,7 @@ OBJS = $(SRCS:.c=.o)
 LDLIBS = -lespeak
 
 PREFIX = /usr
+MANDIR = $(PREFIX)/share/man/man8
 BINDIR = $(PREFIX)/bin
 
 ifeq ("$(origin TAG)", "command line")
@@ -30,6 +31,8 @@ all: espeakup
 install: espeakup
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 0755 $< $(DESTDIR)$(BINDIR)
+	$(INSTALL) -d $(DESTDIR)$(MANDIR)
+	$(INSTALL) -m 0644 espeakup.8 $(DESTDIR)$(MANDIR)
 
 clean:
 	$(RM) $(OBJS)

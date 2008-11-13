@@ -1,0 +1,60 @@
+.\" Hey, Emacs!  This is an -*- nroff -*- source file.
+.\" Espeakup is Copyright 2008 by William Hubbs.
+.\" This is free software; see the GNU General Public Licence version 2
+.\" or later for copying conditions.  There is NO warranty.
+.TH ESPEAKUP 8 "5 Nov 2008" "0.4"
+.SH NAME
+espeakup \(em connect Speakup to the ESpeak TTS engine
+.SH SYNOPSIS
+.B espeakup
+[
+.B \-\^\-debug
+]
+[
+.B \-\^\-help
+]
+[
+.B \-\^\-version
+]
+.SH OPTIONS
+.TP
+.B \-d, \-\^\-debug
+run in the foreground, rather than becoming a daemon process.
+.TP
+.B \-h, \-\^\-help
+display a brief help message and exit.
+.TP
+.B \-v, \-\^\-version
+output version information and exit.
+.SH DESCRIPTION
+Espeakup bridges the gap between two tools: the Speakup screen review
+system and the ESppeak text-to-speech engine.  Each of these tools
+performs a well-defined task.  Speakup is a kernel-based screenreader
+for the Linux console.  It extracts and processes the text that is
+displayed on the foreground virtual console, but it does not know how
+to convert that text to synthesized speech.  ESpeak transforms text into
+artificial speech, but it knows nothing about the Linux console.
+Enter Espeakup.  Espeakup reads text from Speakup and transmits it to ESpeak.
+.PP
+Espeakup is a daemon.  Typically, it is started at boot time, and it terminates
+when the system is halted or rebooted.  It should be started by the
+system's init scripts.  This process varies among Linux distributions,
+but the details are usually managed by the person who packaged Espeakup for
+your distribution.
+From the perspective of an average user, Espeakup's operation is invisible.
+.SH BUGS
+.PP
+Espeakup is still classified as alpha software.  Bugs are periodically found
+and fixed.  If you find a bug, please do report it to the author.  You
+might also consider mentioning it on the mailing list for the Speakup
+screenreader.  Visit http://speech.braille.uwo.ca/mailman/listinfo/speakup
+to learn more about the mailing list.
+.SH SEE ALSO
+.PP
+For more information about Speakup, visit its homepage: http://linux-speakup.org.
+ESpeak's home page is http://espeak.sourceforge.net.
+.SH AUTHOR
+.PP
+William Hubbs is the author and maintainer of Espeakup.  He may be reached
+via the email address <w.d.hubbs@gmail.com>.  This manual page was written
+by Chris Brannon, and his email address is <cmbrannon79@gmail.com>.
