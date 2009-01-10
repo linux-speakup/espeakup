@@ -1,7 +1,3 @@
-CC = cc
-INSTALL = /usr/bin/install
-RM = /bin/rm -f
-
 SRCS = \
 	cli.c \
 	espeakup.c  \
