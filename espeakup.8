@@ -30,12 +30,17 @@ output version information and exit.
 .SH DESCRIPTION
 Espeakup bridges the gap between two tools: the Speakup screen review
 system and the ESppeak text-to-speech engine.  Each of these tools
-performs a well-defined task.  Speakup is a kernel-based screenreader
+performs a well-defined task.  Speakup is a kernel-based screen reader
 for the Linux console.  It extracts and processes the text that is
-displayed on the foreground virtual console, but it does not know how
-to convert that text to synthesized speech.  ESpeak transforms text into
-artificial speech, but it knows nothing about the Linux console.
-Enter Espeakup.  Espeakup reads text from Speakup and transmits it to ESpeak.
+displayed on the foreground virtual console.  It supports several
+hardware based speech synthesizers directly.  However, since it is in
+kernel space, it cannot support a software speech synthesizer directly
+since these are in user space.
+ESpeak is a popular software speech synthesizer.  It is small, light
+weight, very responsive, and supports multiple languages.
+Espeakup is a connector which will read text sent to it by speakup and
+forward it to ESpeak.  This allows Speakup to use ESpeak as its speech
+synthesizer.
 .PP
 Espeakup is a daemon.  Typically, it is started at boot time, and it terminates
 when the system is halted or rebooted.  It should be started by the
