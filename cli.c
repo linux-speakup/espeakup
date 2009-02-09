@@ -24,7 +24,7 @@
 #include "espeakup.h"
 
 /* program version */
-const char *Version = "0.4";
+extern const char *Version;
 
 /* command line options */
 const char *shortOptions = "dhv";
