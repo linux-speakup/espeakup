@@ -1,3 +1,5 @@
+INSTALL = install
+
 SRCS = \
 	cli.c \
 	espeakup.c  \
