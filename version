@@ -1,0 +1,5 @@
+#!/bin/bash
+ver=$(grep "const char.*Version" espeakup.c)
+ver=${ver%\"*}
+ver=${ver#*\"}
+echo ${ver}
