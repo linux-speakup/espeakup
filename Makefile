@@ -1,5 +1,7 @@
 INSTALL = install
 
+CFLAGS = -Wall
+
 SRCS = \
 	cli.c \
 	espeakup.c  \

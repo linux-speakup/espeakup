@@ -136,6 +136,8 @@ void queue_process_entry(struct synth_t *s)
 		s->len = last->len;
 		error = speak_text(s);
 		break;
+	default:
+		break;
 	}
 	if (error == EE_OK)
 		queue_remove();
