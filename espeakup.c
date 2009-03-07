@@ -96,12 +96,13 @@ int main(int argc, char **argv)
 	/* process command line options */
 	process_cli(argc, argv);
 
-	if (!debug) {
-		if (espeakup_is_running()) {
-			printf("Espeakup is already running!\n");
-			return 1;
-		}
+	/* Is the espeakup daemon running? */
+	if (espeakup_is_running()) {
+		printf("Espeakup is already running!\n");
+		return 1;
+	}
 
+	if (!debug) {
 		/* become a daemon */
 		daemon(0, 1);
 
