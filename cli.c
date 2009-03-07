@@ -20,15 +20,20 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "espeakup.h"
 
 /* program version */
 extern const char *Version;
 
+/* default voice */
+extern char *defaultVoice;
+
 /* command line options */
-const char *shortOptions = "dhv";
+const char *shortOptions = "dhV:v";
 const struct option longOptions[] = {
+	{"default-voice", required_argument, NULL, 'V'},
 	{"debug", no_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
 	{"version", no_argument, NULL, 'v'},
@@ -61,6 +66,9 @@ void process_cli(int argc, char **argv)
 	do {
 		opt = getopt_long(argc, argv, shortOptions, longOptions, NULL);
 		switch (opt) {
+		case 'V':
+			defaultVoice = strdup(optarg);
+			break;
 		case 'd':
 			debug = 1;
 			break;

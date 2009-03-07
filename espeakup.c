@@ -38,6 +38,7 @@ const int defaultPitch = 5;
 const int defaultRate = 5;
 const int defaultVolume = 5;
 
+char *defaultVoice = NULL;
 int debug = 0;
 
 int espeakup_is_running(void)
@@ -120,6 +121,11 @@ int main(int argc, char **argv)
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
 
 	/* Setup initial voice parameters */
+	if (defaultVoice) {
+		set_voice(&s, defaultVoice);
+		free(defaultVoice);
+		defaultVoice = NULL;
+	}
 	set_frequency(&s, defaultFrequency, ADJ_SET);
 	set_pitch(&s, defaultPitch, ADJ_SET);
 	set_rate(&s, defaultRate, ADJ_SET);
