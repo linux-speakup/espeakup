@@ -17,15 +17,6 @@ PREFIX = /usr
 MANDIR = $(PREFIX)/share/man/man8
 BINDIR = $(PREFIX)/bin
 
-ifeq ("$(origin TAG)", "command line")
-TIMESTAMP := _p$(shell date +%Y%m%d)
-endif
-
-VERSION := $(shell ./version)
-TAG := v$(VERSION)
-TARPREFIX := espeakup-$(VERSION)
-TARFILE := $(TARPREFIX)$(TIMESTAMP).tar
-
 all: espeakup
 
 install: espeakup
@@ -41,11 +32,6 @@ distclean: clean
 	$(RM) espeakup
 
 espeakup: $(OBJS)
-
-tarball:
-	git archive --format=tar --prefix=$(TARPREFIX)/ $(TAG) > $(TARFILE)
-	tar f $(TARFILE) --delete $(TARPREFIX)/.gitignore 
-	bzip2 $(TARFILE)
 
 cli.o: cli.c espeakup.h
 
