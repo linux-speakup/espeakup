@@ -9,6 +9,9 @@ espeakup \(em connect Speakup to the ESpeak TTS engine
 .SH SYNOPSIS
 .B espeakup
 [
+.B \-\^\-default-voice=voicename
+]
+[
 .B \-\^\-debug
 ]
 [
@@ -18,6 +21,9 @@ espeakup \(em connect Speakup to the ESpeak TTS engine
 .B \-\^\-version
 ]
 .SH OPTIONS
+.TP
+.B \-V voicename, \-\^\-default-voice=voicename
+Set the espeak voice to be used by default.
 .TP
 .B \-d, \-\^\-debug
 run in the foreground, rather than becoming a daemon process.
