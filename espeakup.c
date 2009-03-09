@@ -27,7 +27,7 @@
 #include "espeakup.h"
 
 /* program version */
-const char *Version = "0.6";
+const char *Version = "0.60";
 
 /* path to our pid file */
 const char *pidPath = "/var/run/espeakup.pid";
