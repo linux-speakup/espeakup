@@ -1,7 +1,5 @@
 INSTALL = install
 
-CFLAGS = -Wall
-
 SRCS = \
 	cli.c \
 	espeakup.c  \
@@ -42,3 +40,6 @@ queue.o: queue.c espeakup.h
 softsynth.o: softsynth.c espeakup.h
 
 synth.o: synth.c espeakup.h
+
+%.o: %.c
+	$(CC) -c -Wall $(CFLAGS) $(CPPFLAGS) -o $@ $< 
