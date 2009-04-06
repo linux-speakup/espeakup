@@ -110,7 +110,7 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	start = 0;
 	end = 0;
 	while (start < length) {
-		while (isprint(buf[end]) && end < length)
+		while ((buf[end] < 0 || buf[end] >= ' ') && end < length)
 			end++;
 		if (end != start) {
 			txtLen = end - start;
