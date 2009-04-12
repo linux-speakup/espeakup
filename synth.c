@@ -28,7 +28,7 @@ const int rateMultiplier = 34;
 const int rateOffset = 84;
 const int volumeMultiplier = 22;
 
-espeak_ERROR set_frequency(struct synth_t * s, int freq, enum adjust_t adj)
+espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -56,7 +56,8 @@ espeak_ERROR set_pitch(struct synth_t * s, int pitch, enum adjust_t adj)
 	return rc;
 }
 
-espeak_ERROR set_punctuation(struct synth_t * s, int punct, enum adjust_t adj)
+espeak_ERROR set_punctuation(struct synth_t * s, int punct,
+							 enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
