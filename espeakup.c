@@ -130,6 +130,7 @@ int main(int argc, char **argv)
 	set_pitch(&s, defaultPitch, ADJ_SET);
 	set_rate(&s, defaultRate, ADJ_SET);
 	set_volume(&s, defaultVolume, ADJ_SET);
+	espeak_SetParameter(espeakCAPITALS, 0, 0);
 
 	/* register signal handler */
 	signal(SIGINT, espeakup_sighandler);
