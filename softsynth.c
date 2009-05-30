@@ -125,13 +125,16 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
-void open_softsynth(void)
+int open_softsynth(void)
 {
+		int rc;
+
 	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
-	if (softFD < 0) {
-		perror("Unable to open the softsynth device");
-		exit(3);
-	}
+	if (softFD < 0)
+		rc = 0;
+	else 
+		rc = 1;
+	return rc;
 }
 
 void close_softsynth(void)

@@ -105,6 +105,16 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	/* open the softsynth. */
+	if (! open_softsynth()) {
+		perror("Unable to open the softsynth device");
+		return 3;
+	}
+
+	/* register signal handler */
+	signal(SIGINT, espeakup_sighandler);
+	signal(SIGTERM, espeakup_sighandler);
+
 	if (!debug) {
 		/* become a daemon */
 		daemon(0, 1);
@@ -115,15 +125,6 @@ int main(int argc, char **argv)
 			return 2;
 		}
 	}
-
-	/* Spawn our queue-processing thread. */
-	int err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
-	if (err != 0) {
-		return 4;
-	}
-
-	/* open the softsynth. */
-	open_softsynth();
 
 	/* initialize espeak */
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
@@ -140,9 +141,11 @@ int main(int argc, char **argv)
 	set_volume(&s, defaultVolume, ADJ_SET);
 	espeak_SetParameter(espeakCAPITALS, 0, 0);
 
-	/* register signal handler */
-	signal(SIGINT, espeakup_sighandler);
-	signal(SIGTERM, espeakup_sighandler);
+	/* Spawn our queue-processing thread. */
+	int err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
+	if (err != 0) {
+		return 4;
+	}
 
 	/* run the main loop */
 	main_loop(&s);
