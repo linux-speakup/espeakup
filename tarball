@@ -14,5 +14,9 @@ TARFILE=${PREFIX}${PATCHLEVEL}.tar
 
 git archive --format=tar --prefix=${PREFIX}/ $REL > ${TARFILE}
 tar f ${TARFILE} --delete ${PREFIX}/.gitignore --delete ${PREFIX}/tarball
+mkdir ${PREFIX}
+${REL} > ${PREFIX}/ChangeLog
+tar rf ${TARFILE} ${PREFIX}
+rm -rf ${PREFIX}
 bzip2 ${TARFILE}
 echo "Produced ${TARFILE}.bz2"
