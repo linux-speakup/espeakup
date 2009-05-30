@@ -9,7 +9,7 @@ SRCS = \
 
 OBJS = $(SRCS:.c=.o)
 
-LDLIBS = -lespeak
+LDLIBS = -lespeak -lpthread
 
 PREFIX = /usr
 MANDIR = $(PREFIX)/share/man/man8

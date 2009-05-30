@@ -142,19 +142,15 @@ void close_softsynth(void)
 void main_loop(struct synth_t *s)
 {
 	fd_set set;
-	struct timeval tv;
 	ssize_t length;
 	char buf[maxBufferSize];
 	char *cp;
 
 	while (1) {
-		queue_process_entry(s);
 
 		FD_ZERO(&set);
 		FD_SET(softFD, &set);
-		tv.tv_sec = 0;
-		tv.tv_usec = 500;
-		if (select(softFD + 1, &set, NULL, NULL, &tv) < 0) {
+		if (select(softFD + 1, &set, NULL, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
 			perror("Select failed");
@@ -182,3 +178,4 @@ void main_loop(struct synth_t *s)
 		process_buffer(s, buf, length);
 	}
 }
+

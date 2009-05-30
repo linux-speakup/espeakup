@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "espeakup.h"
 
@@ -90,9 +91,12 @@ void espeakup_sighandler(int sig)
 
 int main(int argc, char **argv)
 {
+pthread_t queue_thread_id;
 	struct synth_t s = {
 		.voice = "",
 	};
+
+	/* Spawn our queue-processing thread. */
 
 	/* process command line options */
 	process_cli(argc, argv);
@@ -112,6 +116,11 @@ int main(int argc, char **argv)
 			perror("Unable to create pid file");
 			return 2;
 		}
+	}
+
+	int err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
+	if (err != 0) {
+		return 4;
 	}
 
 	/* open the softsynth. */
