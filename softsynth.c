@@ -178,4 +178,3 @@ void main_loop(struct synth_t *s)
 		process_buffer(s, buf, length);
 	}
 }
-

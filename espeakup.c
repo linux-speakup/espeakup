@@ -91,12 +91,10 @@ void espeakup_sighandler(int sig)
 
 int main(int argc, char **argv)
 {
-pthread_t queue_thread_id;
+	pthread_t queue_thread_id;
 	struct synth_t s = {
 		.voice = "",
 	};
-
-	/* Spawn our queue-processing thread. */
 
 	/* process command line options */
 	process_cli(argc, argv);
@@ -118,6 +116,7 @@ pthread_t queue_thread_id;
 		}
 	}
 
+	/* Spawn our queue-processing thread. */
 	int err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
 	if (err != 0) {
 		return 4;

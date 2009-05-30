@@ -71,7 +71,7 @@ static struct queue_entry_t *queue_remove(void)
 {
 	struct queue_entry_t *temp = NULL;
 
-	if(last) {
+	if (last) {
 		temp = last;
 		last = temp->next;
 
@@ -87,7 +87,7 @@ void queue_clear(void)
 	pthread_mutex_lock(&queue_guard);
 	while (last) {
 		struct queue_entry_t *entry = queue_remove();
-		if(entry)
+		if (entry)
 			free_entry(entry);
 	}
 	pthread_mutex_unlock(&queue_guard);
@@ -135,9 +135,9 @@ static void queue_process_entry(struct synth_t *s)
 	espeak_ERROR error;
 	struct queue_entry_t *current = queue_remove();
 
-	pthread_mutex_unlock(&queue_guard); /* So "reader" can go. */
+	pthread_mutex_unlock(&queue_guard);	/* So "reader" can go. */
 
-	if(current) {
+	if (current) {
 		switch (current->cmd) {
 		case CMD_SET_FREQUENCY:
 			error = set_frequency(s, current->value, current->adjust);
@@ -189,13 +189,14 @@ static void queue_process_entry(struct synth_t *s)
  * 2. We are processing an entry that has just been removed from the queue.
 */
 
-void *queue_runner(void *arg) {
+void *queue_runner(void *arg)
+{
 	struct synth_t *synth = (struct synth_t *) arg;
-		pthread_mutex_lock(&queue_guard);
-	while(1) {
+	pthread_mutex_lock(&queue_guard);
+	while (1) {
 		pthread_cond_wait(&runner_awake, &queue_guard);
 
-		while(last) {
+		while (last) {
 			queue_process_entry(synth);
 			pthread_mutex_lock(&queue_guard);
 		}
