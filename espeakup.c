@@ -42,6 +42,10 @@ const int defaultVolume = 5;
 char *defaultVoice = NULL;
 int debug = 0;
 
+volatile int stopped = 0;
+espeak_AUDIO_OUTPUT audio_mode;
+t_espeak_callback *audio_callback = NULL;
+
 int espeakup_is_running(void)
 {
 	int rc;
@@ -115,6 +119,10 @@ int main(int argc, char **argv)
 	signal(SIGINT, espeakup_sighandler);
 	signal(SIGTERM, espeakup_sighandler);
 
+	if (init_audio() < 0) {
+		return 5;
+	}
+
 	if (!debug) {
 		/* become a daemon */
 		daemon(0, 1);
@@ -127,7 +135,8 @@ int main(int argc, char **argv)
 	}
 
 	/* initialize espeak */
-	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
+	espeak_Initialize(audio_mode, 0, NULL, 0);
+	espeak_SetSynthCallback(audio_callback);
 
 	/* Setup initial voice parameters */
 	if (defaultVoice) {

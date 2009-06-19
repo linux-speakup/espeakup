@@ -78,5 +78,9 @@ extern int open_softsynth(void);
 extern void close_softsynth(void);
 extern void main_loop(struct synth_t *s);
 extern void * queue_runner(void *arg);
+extern int init_audio(void);
+extern volatile int stopped;
 
+extern espeak_AUDIO_OUTPUT audio_mode;
+extern t_espeak_callback *audio_callback;
 #endif

@@ -1,15 +1,18 @@
 INSTALL = install
 
+CFLAGS ?= -DUSE_ALSA
 SRCS = \
 	cli.c \
+	alsa.c \
 	espeakup.c  \
+	espeak_sound.c \
 	queue.c \
 		softsynth.c \
 	synth.c
 
 OBJS = $(SRCS:.c=.o)
 
-LDLIBS = -lespeak -lpthread
+LDLIBS = -lespeak -lasound
 
 PREFIX = /usr
 MANDIR = $(PREFIX)/share/man/man8
