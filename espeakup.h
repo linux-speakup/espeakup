@@ -66,7 +66,7 @@ extern espeak_ERROR set_frequency(struct synth_t *s, int freq,
 extern espeak_ERROR set_pitch(struct synth_t *s, int pitch,
 							  enum adjust_t adj);
 extern espeak_ERROR set_punctuation(struct synth_t *s, int punct,
-							  enum adjust_t adj);
+									enum adjust_t adj);
 extern espeak_ERROR set_rate(struct synth_t *s, int rate,
 							 enum adjust_t adj);
 extern espeak_ERROR set_voice(struct synth_t *s, char *voice);
@@ -77,7 +77,7 @@ extern espeak_ERROR speak_text(struct synth_t *s);
 extern int open_softsynth(void);
 extern void close_softsynth(void);
 extern void main_loop(struct synth_t *s);
-extern void * queue_runner(void *arg);
+extern void *queue_runner(void *arg);
 extern int init_audio(void);
 extern volatile int stopped;
 

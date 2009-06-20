@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 	}
 
 	/* open the softsynth. */
-	if (! open_softsynth()) {
+	if (!open_softsynth()) {
 		perror("Unable to open the softsynth device");
 		return 3;
 	}

@@ -127,12 +127,12 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 
 int open_softsynth(void)
 {
-		int rc;
+	int rc;
 
 	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0)
 		rc = 0;
-	else 
+	else
 		rc = 1;
 	return rc;
 }
