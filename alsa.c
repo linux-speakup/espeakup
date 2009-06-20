@@ -22,7 +22,6 @@
  * Description: Produce audio by calling the ALSA library directly.
 */
 
-#ifdef USE_ALSA
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -146,4 +145,3 @@ int init_audio(void)
 	audio_callback = alsa_play_callback;
 	return 0;
 }
-#endif

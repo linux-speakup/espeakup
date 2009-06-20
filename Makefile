@@ -1,22 +1,29 @@
-INSTALL = install
-
-CFLAGS ?= -DUSE_ALSA
-SRCS = \
-	cli.c \
-	alsa.c \
-	espeakup.c  \
-	espeak_sound.c \
-	queue.c \
-		softsynth.c \
-	synth.c
-
-OBJS = $(SRCS:.c=.o)
-
-LDLIBS = -lespeak -lasound
+CFLAGS += -Wall
+LDLIBS = -lespeak
 
 PREFIX = /usr
 MANDIR = $(PREFIX)/share/man/man8
 BINDIR = $(PREFIX)/bin
+
+INSTALL = install
+
+ALSA_SRCS = alsa.c
+ESPEAK_SRCS = espeak_sound.c
+SRCS = \
+	cli.c \
+	espeakup.c  \
+	queue.c \
+		softsynth.c \
+	synth.c
+
+ifeq ($(AUDIO),alsa)
+SRCS += $(ALSA_SRCS)
+LDLIBS += -lasound
+else
+SRCS += $(ESPEAK_SRCS)
+endif
+
+OBJS = $(SRCS:.c=.o)
 
 all: espeakup
 
@@ -27,7 +34,7 @@ install: espeakup
 	$(INSTALL) -m 0644 espeakup.8 $(DESTDIR)$(MANDIR)
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) *.o
 
 distclean: clean
 	$(RM) espeakup
@@ -44,5 +51,6 @@ softsynth.o: softsynth.c espeakup.h
 
 synth.o: synth.c espeakup.h
 
-%.o: %.c
-	$(CC) -c -Wall $(CFLAGS) $(CPPFLAGS) -o $@ $< 
+alsa.o: alsa.c espeakup.h
+
+espeak_sound.o: espeak_sound.c espeakup.h

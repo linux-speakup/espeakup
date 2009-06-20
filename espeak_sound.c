@@ -1,4 +1,3 @@
-#ifndef USE_ALSA
 #include "espeakup.h"
 int init_audio(void)
 {
@@ -6,4 +5,3 @@ int init_audio(void)
 	audio_callback = NULL;
 	return 0;
 }
-#endif

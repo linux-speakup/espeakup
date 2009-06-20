@@ -25,6 +25,17 @@ To install espeakup, first cd into the directory where you
 unpacked the tarball, then issue make to compile the program.  Once this
 is done, as root, issue make install.  This will install espeakup in /usr/bin.
 
+ALSA SUPPORT
+============
+
+Direct support for alsa was just contributed to this project; I would
+like to thank Chris Brannon for his work on this.  Currently,, it is in
+the early stages, so if you have any suggestions or patches, I am
+definitely interested.
+
+To build with alsa support, add "AUDIO=alsa" to the make command when you
+compile the program.
+
 Starting Up
 ===========
 
