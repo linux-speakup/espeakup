@@ -114,8 +114,12 @@ espeak_ERROR set_volume(struct synth_t * s, int vol, enum adjust_t adj)
 
 espeak_ERROR stop_speech(void)
 {
-	stopped = 1;
-	return (espeak_Cancel());
+	espeak_ERROR rc;
+
+	rc = espeak_Cancel();
+	if (rc == EE_OK)
+		stopped = 1;
+	return rc;
 }
 
 espeak_ERROR speak_text(struct synth_t * s)
