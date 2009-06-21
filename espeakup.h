@@ -79,6 +79,8 @@ extern void close_softsynth(void);
 extern void main_loop(struct synth_t *s);
 extern void *queue_runner(void *arg);
 extern int init_audio(void);
+extern void lock_audio_mutex(void);
+extern void unlock_audio_mutex(void);
 extern volatile int stopped;
 
 extern espeak_AUDIO_OUTPUT audio_mode;

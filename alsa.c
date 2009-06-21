@@ -25,9 +25,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <pthread.h>
 #define ALSA_PCM_NEW_HW_PARAMS_API
 #include <alsa/asoundlib.h>
 #include "espeakup.h"
+
+static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void lock_audio_mutex(void)
+{
+	pthread_mutex_lock(&audio_mutex);
+}
+
+void unlock_audio_mutex(void)
+{
+	pthread_mutex_unlock(&audio_mutex);
+}
 
 int minimum(int x, int y)
 {
@@ -57,11 +70,15 @@ static int alsa_play_callback(short *audio, int numsamples,
 		snd_pcm_prepare(handle);
 
 	while (numsamples > 0) {
+		lock_audio_mutex();
 		if (stopped) {
 			snd_pcm_drop(handle);
 			stopped = 0;
+			unlock_audio_mutex();
 			return 1;
 		}
+		unlock_audio_mutex();
+
 		avail = snd_pcm_avail_update(handle);
 		if (avail <= 0)
 			continue;
