@@ -7,7 +7,6 @@ void select_audio_mode(void)
 
 int init_audio(unsigned int rate)
 {
-	audio_callback = NULL;
 	return 0;
 }
 

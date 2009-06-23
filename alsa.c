@@ -163,6 +163,6 @@ int init_audio(unsigned int rate)
 	if (rc < 0)
 		return sound_error(rc, "unable to set hw parameters");
 
-	audio_callback = alsa_play_callback;
+	espeak_SetSynthCallback(alsa_play_callback);
 	return 0;
 }

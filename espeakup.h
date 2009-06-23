@@ -85,5 +85,4 @@ extern void unlock_audio_mutex(void);
 extern volatile int stopped;
 
 extern espeak_AUDIO_OUTPUT audio_mode;
-extern t_espeak_callback *audio_callback;
 #endif

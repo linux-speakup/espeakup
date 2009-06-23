@@ -44,7 +44,6 @@ int debug = 0;
 
 volatile int stopped = 0;
 espeak_AUDIO_OUTPUT audio_mode;
-t_espeak_callback *audio_callback = NULL;
 
 int espeakup_is_running(void)
 {
@@ -143,8 +142,6 @@ int main(int argc, char **argv)
 	if (init_audio((unsigned int) rate) < 0) {
 		return 6;
 	}
-
-	espeak_SetSynthCallback(audio_callback);
 
 	/* Setup initial voice parameters */
 	if (defaultVoice) {
