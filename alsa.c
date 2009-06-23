@@ -37,7 +37,6 @@ static snd_pcm_hw_params_t *params;
 snd_pcm_status_t *status;
 static unsigned int rate = 22050;	/* sample rate */
 static int dir = 0;
-static snd_pcm_uframes_t frames;
 
 void lock_audio_mutex(void)
 {
@@ -144,10 +143,6 @@ int init_audio(void)
 
 	saved_rate = rate;
 	snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir);
-
-	/* Set period size to 32 frames. */
-	frames = 32;
-	snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
 
 	/* Write the parameters to the driver */
 	rc = snd_pcm_hw_params(handle, params);
