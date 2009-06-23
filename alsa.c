@@ -32,6 +32,13 @@
 
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static snd_pcm_t *handle;
+static snd_pcm_hw_params_t *params;
+snd_pcm_status_t *status;
+static unsigned int rate = 22050;	/* sample rate */
+static int dir = 0;
+static snd_pcm_uframes_t frames;
+
 void lock_audio_mutex(void)
 {
 	pthread_mutex_lock(&audio_mutex);
@@ -50,13 +57,6 @@ int minimum(int x, int y)
 		return y;
 }
 
-static snd_pcm_t *handle;
-static snd_pcm_hw_params_t *params;
-snd_pcm_status_t *status;
-static unsigned int rate = 22050;	/* sample rate */
-static int dir = 0;
-static snd_pcm_uframes_t frames;
-
 static int alsa_play_callback(short *audio, int numsamples,
 							  espeak_EVENT * events)
 {
@@ -64,6 +64,7 @@ static int alsa_play_callback(short *audio, int numsamples,
 	int avail;
 	int to_write;
 	snd_pcm_state_t state;
+
 	snd_pcm_status(handle, status);
 	state = snd_pcm_status_get_state(status);
 	if (state != SND_PCM_STATE_RUNNING)
@@ -126,7 +127,6 @@ int init_audio(void)
 				snd_strerror(rc));
 		return rc;
 	}
-
 
 	/* Fill it in with default values. */
 	snd_pcm_hw_params_any(handle, params);
