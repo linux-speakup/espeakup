@@ -86,14 +86,13 @@ static int alsa_play_callback(short *audio, int numsamples,
 		avail = minimum(avail, 32 * 2);
 		to_write = minimum(avail, numsamples);
 		samples_written = snd_pcm_writei(handle, audio, to_write);
-		if (samples_written == -EPIPE)
+		if (samples_written < 0) {
 			snd_pcm_prepare(handle);
-		else {
+		} else {
 			numsamples -= samples_written;
 			audio += samples_written;
 		}
 	}
-
 	return 0;
 }
 
