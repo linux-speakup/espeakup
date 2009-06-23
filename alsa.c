@@ -69,21 +69,21 @@ static int alsa_play_callback(short *audio, int numsamples,
 	int to_write;
 	snd_pcm_state_t state;
 
+	lock_audio_mutex();
+	if (stopped) {
+		snd_pcm_drop(handle);
+		stopped = 0;
+		unlock_audio_mutex();
+		return 1;
+	}
+	unlock_audio_mutex();
+
 	snd_pcm_status(handle, status);
 	state = snd_pcm_status_get_state(status);
 	if (state != SND_PCM_STATE_RUNNING)
 		snd_pcm_prepare(handle);
 
 	while (numsamples > 0) {
-		lock_audio_mutex();
-		if (stopped) {
-			snd_pcm_drop(handle);
-			stopped = 0;
-			unlock_audio_mutex();
-			return 1;
-		}
-		unlock_audio_mutex();
-
 		avail = snd_pcm_avail_update(handle);
 		if (avail <= 0)
 			continue;
