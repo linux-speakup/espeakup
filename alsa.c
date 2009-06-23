@@ -35,7 +35,6 @@ static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
 static snd_pcm_t *handle;
 static snd_pcm_hw_params_t *params;
 snd_pcm_status_t *status;
-static unsigned int rate = 22050;	/* sample rate */
 static int dir = 0;
 
 void lock_audio_mutex(void)
@@ -95,12 +94,10 @@ static int alsa_play_callback(short *audio, int numsamples,
 	return 0;
 }
 
-int init_audio(void)
+int init_audio(unsigned int rate)
 {
 	int rc;
-	unsigned saved_rate;
 
-	rate = 22050;
 
 	/* Open PCM device for playback. */
 	rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -141,7 +138,6 @@ int init_audio(void)
 	/* One channel  */
 	snd_pcm_hw_params_set_channels(handle, params, 1);
 
-	saved_rate = rate;
 	snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir);
 
 	/* Write the parameters to the driver */

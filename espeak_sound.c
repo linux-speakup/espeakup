@@ -1,5 +1,5 @@
 #include "espeakup.h"
-int init_audio(void)
+int init_audio(unsigned int rate)
 {
 	audio_mode = AUDIO_OUTPUT_PLAYBACK;
 	audio_callback = NULL;

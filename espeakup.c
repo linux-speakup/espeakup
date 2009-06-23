@@ -95,6 +95,7 @@ void espeakup_sighandler(int sig)
 
 int main(int argc, char **argv)
 {
+	int rate;
 	pthread_t queue_thread_id;
 	struct synth_t s = {
 		.voice = "",
@@ -119,9 +120,6 @@ int main(int argc, char **argv)
 	signal(SIGINT, espeakup_sighandler);
 	signal(SIGTERM, espeakup_sighandler);
 
-	if (init_audio() < 0) {
-		return 5;
-	}
 
 	if (!debug) {
 		/* become a daemon */
@@ -135,7 +133,16 @@ int main(int argc, char **argv)
 	}
 
 	/* initialize espeak */
-	espeak_Initialize(audio_mode, 0, NULL, 0);
+	rate = espeak_Initialize(audio_mode, 0, NULL, 0);
+	if (rate < 0) {
+		fprintf(stderr, "Unable to initialize espeak.\n");
+		return 5;
+	}
+
+	if (init_audio((unsigned int) rate) < 0) {
+		return 6;
+	}
+
 	espeak_SetSynthCallback(audio_callback);
 
 	/* Setup initial voice parameters */
