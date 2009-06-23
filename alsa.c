@@ -100,6 +100,11 @@ static int alsa_play_callback(short *audio, int numsamples,
 	return 0;
 }
 
+void select_audio_mode(void)
+{
+	audio_mode = AUDIO_OUTPUT_RETRIEVAL;
+}
+
 int init_audio(unsigned int rate)
 {
 	int rc;
@@ -158,7 +163,6 @@ int init_audio(unsigned int rate)
 	if (rc < 0)
 		return sound_error(rc, "unable to set hw parameters");
 
-	audio_mode = AUDIO_OUTPUT_RETRIEVAL;
 	audio_callback = alsa_play_callback;
 	return 0;
 }
