@@ -47,6 +47,12 @@ void unlock_audio_mutex(void)
 	pthread_mutex_unlock(&audio_mutex);
 }
 
+int sound_error(int err, const char *msg)
+{
+	fprintf(stderr, "%s: %s\n", msg, snd_strerror(err));
+	return err;
+}
+
 int minimum(int x, int y)
 {
 	if (x <= y)
@@ -101,52 +107,56 @@ int init_audio(unsigned int rate)
 
 	/* Open PCM device for playback. */
 	rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
-	if (rc < 0) {
-		fprintf(stderr,
-				"unable to open pcm device: %s\n", snd_strerror(rc));
-		return rc;
-	}
+	if (rc < 0)
+		return sound_error(rc, "unable to open pcm device");
 
 	/* Allocate a hardware parameters object. */
 	rc = snd_pcm_hw_params_malloc(&params);
-	if (rc < 0) {
-		fprintf(stderr,
-				"Unable to allocate memory to store audio parameters: %s\n",
-				snd_strerror(rc));
-		return rc;
-	}
+	if (rc < 0)
+		return sound_error(rc,
+						   "Unable to allocate memory to store audio parameters");
+
 	rc = snd_pcm_status_malloc(&status);
-	if (rc < 0) {
-		fprintf(stderr,
-				"Unable to allocate memory to store PCM status: %s\n",
-				snd_strerror(rc));
-		return rc;
-	}
+	if (rc < 0)
+		return sound_error(rc,
+						   "Unable to allocate memory to store PCM status");
 
 	/* Fill it in with default values. */
-	snd_pcm_hw_params_any(handle, params);
+	rc = snd_pcm_hw_params_any(handle, params);
+
+	if (rc < 0)
+		return sound_error(rc,
+						   "Unable to establish defaults for hardware parameters.");
 
 	/* Set the desired hardware parameters. */
 
 	/* Interleaved mode */
-	snd_pcm_hw_params_set_access(handle, params,
-								 SND_PCM_ACCESS_RW_INTERLEAVED);
+	rc = snd_pcm_hw_params_set_access(handle, params,
+									  SND_PCM_ACCESS_RW_INTERLEAVED);
+
+	if (rc < 0)
+		return sound_error(rc, "Error selecting interleaved mode.");
 
 	/* Signed 16-bit little-endian format */
-	snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_S16_LE);
+	rc = snd_pcm_hw_params_set_format(handle, params,
+									  SND_PCM_FORMAT_S16_LE);
+	if (rc < 0)
+		return sound_error(rc, "Unable to select signed 16-bit samples");
 
 	/* One channel  */
-	snd_pcm_hw_params_set_channels(handle, params, 1);
+	rc = snd_pcm_hw_params_set_channels(handle, params, 1);
 
-	snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir);
+	if (rc < 0)
+		return sound_error(rc, "Unable to use mono output.");
+
+	rc = snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir);
+	if (rc < 0)
+		return sound_error(rc, "Unable to set sample rate");
 
 	/* Write the parameters to the driver */
 	rc = snd_pcm_hw_params(handle, params);
-	if (rc < 0) {
-		fprintf(stderr,
-				"unable to set hw parameters: %s\n", snd_strerror(rc));
-		return rc;
-	}
+	if (rc < 0)
+		return sound_error(rc, "unable to set hw parameters");
 
 	audio_mode = AUDIO_OUTPUT_RETRIEVAL;
 	audio_callback = alsa_play_callback;
