@@ -67,28 +67,27 @@ static void free_entry(struct queue_entry_t *entry)
 /* Remove and return the entry at the head of the queue.
  * Return NULL if queue is empty. */
 
-static struct queue_entry_t *queue_remove(void)
+static void  queue_remove(void)
 {
-	struct queue_entry_t *temp = NULL;
+	struct queue_entry_t *temp;
 
 	if (last) {
 		temp = last;
 		last = temp->next;
-
 		if (!last)
 			first = last;
+		free_entry(temp);
 	}
-
-	return temp;
 }
 
 void queue_clear(void)
 {
+	struct queue_entry_t *temp;
+
 	pthread_mutex_lock(&queue_guard);
 	while (last) {
-		struct queue_entry_t *entry = queue_remove();
-		if (entry)
-			free_entry(entry);
+		temp = last->next;
+		queue_remove();
 	}
 	pthread_mutex_unlock(&queue_guard);
 	/* We aren't adding data to the queue, so no need to signal. */
@@ -133,39 +132,39 @@ void queue_add_text(char *txt, size_t length)
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
-	struct queue_entry_t *current = queue_remove();
 
 	pthread_mutex_unlock(&queue_guard);	/* So "reader" can go. */
 
-	if (current) {
-		switch (current->cmd) {
+	if (last) {
+		switch (last->cmd) {
 		case CMD_SET_FREQUENCY:
-			error = set_frequency(s, current->value, current->adjust);
+			error = set_frequency(s, last->value, last->adjust);
 			break;
 		case CMD_SET_PITCH:
-			error = set_pitch(s, current->value, current->adjust);
+			error = set_pitch(s, last->value, last->adjust);
 			break;
 		case CMD_SET_PUNCTUATION:
-			error = set_punctuation(s, current->value, current->adjust);
+			error = set_punctuation(s, last->value, last->adjust);
 			break;
 		case CMD_SET_RATE:
-			error = set_rate(s, current->value, current->adjust);
+			error = set_rate(s, last->value, last->adjust);
 			break;
 		case CMD_SET_VOICE:
 			break;
 		case CMD_SET_VOLUME:
-			error = set_volume(s, current->value, current->adjust);
+			error = set_volume(s, last->value, last->adjust);
 			break;
 		case CMD_SPEAK_TEXT:
-			s->buf = current->buf;
-			s->len = current->len;
+			s->buf = last->buf;
+			s->len = last->len;
 			error = speak_text(s);
 			break;
 		default:
 			break;
 		}
 
-		free_entry(current);
+		if (error == EE_OK)
+			queue_remove();
 	}
 }
 
