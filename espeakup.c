@@ -81,7 +81,7 @@ void espeakup_sighandler(int sig)
 		printf("Caught signal %i\n", sig);
 
 	/* clear the queue */
-	queue_clear();
+	stop_runner();
 
 	/* shut down espeak and close the softsynth */
 	espeak_Terminate();

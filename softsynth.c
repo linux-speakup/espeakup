@@ -173,8 +173,7 @@ void main_loop(struct synth_t *s)
 		*(buf + length) = 0;
 		cp = strrchr(buf, synthFlushChar);
 		if (cp) {
-			queue_clear();
-			stop_speech();
+			stop_runner();
 			memmove(buf, cp + 1, strlen(cp + 1) + 1);
 			length = strlen(buf);
 		}

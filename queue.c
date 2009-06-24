@@ -26,7 +26,9 @@
 #include "espeakup.h"
 
 pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
+pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t stop_guard = PTHREAD_MUTEX_INITIALIZER;
 
 struct queue_entry_t {
 	enum command_t cmd;
@@ -37,6 +39,7 @@ struct queue_entry_t {
 	struct queue_entry_t *next;
 };
 
+volatile int runner_must_stop = 0;
 static struct queue_entry_t *first = NULL;
 static struct queue_entry_t *last = NULL;
 
@@ -67,7 +70,7 @@ static void free_entry(struct queue_entry_t *entry)
 /* Remove and return the entry at the head of the queue.
  * Return NULL if queue is empty. */
 
-static void  queue_remove(void)
+static void queue_remove(void)
 {
 	struct queue_entry_t *temp;
 
@@ -84,12 +87,10 @@ void queue_clear(void)
 {
 	struct queue_entry_t *temp;
 
-	pthread_mutex_lock(&queue_guard);
 	while (last) {
 		temp = last->next;
 		queue_remove();
 	}
-	pthread_mutex_unlock(&queue_guard);
 	/* We aren't adding data to the queue, so no need to signal. */
 }
 
@@ -132,40 +133,56 @@ void queue_add_text(char *txt, size_t length)
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
+	struct queue_entry_t *current = last;
 
 	pthread_mutex_unlock(&queue_guard);	/* So "reader" can go. */
-
-	if (last) {
-		switch (last->cmd) {
+	if (current) {
+		switch (current->cmd) {
 		case CMD_SET_FREQUENCY:
-			error = set_frequency(s, last->value, last->adjust);
+			error = set_frequency(s, current->value, current->adjust);
 			break;
 		case CMD_SET_PITCH:
-			error = set_pitch(s, last->value, last->adjust);
+			error = set_pitch(s, current->value, current->adjust);
 			break;
 		case CMD_SET_PUNCTUATION:
-			error = set_punctuation(s, last->value, last->adjust);
+			error = set_punctuation(s, current->value, current->adjust);
 			break;
 		case CMD_SET_RATE:
-			error = set_rate(s, last->value, last->adjust);
+			error = set_rate(s, current->value, current->adjust);
 			break;
 		case CMD_SET_VOICE:
 			break;
 		case CMD_SET_VOLUME:
-			error = set_volume(s, last->value, last->adjust);
+			error = set_volume(s, current->value, current->adjust);
 			break;
 		case CMD_SPEAK_TEXT:
-			s->buf = last->buf;
-			s->len = last->len;
+			s->buf = current->buf;
+			s->len = current->len;
 			error = speak_text(s);
 			break;
 		default:
 			break;
 		}
 
+		pthread_mutex_lock(&queue_guard);
 		if (error == EE_OK)
 			queue_remove();
+		pthread_mutex_unlock(&queue_guard);
 	}
+}
+
+/*
+ * Tell the runner to stop speech and clear its queue.
+ */
+void stop_runner(void)
+{
+	pthread_mutex_lock(&stop_guard);
+	pthread_mutex_lock(&queue_guard);
+	runner_must_stop = 1;
+	pthread_mutex_unlock(&queue_guard);
+	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
+	pthread_cond_wait(&stop_acknowledged, &stop_guard);
+	pthread_mutex_unlock(&stop_guard);
 }
 
 /* queue_runner is the "main" function of our secondary (queue-processing)
@@ -195,9 +212,18 @@ void *queue_runner(void *arg)
 	while (1) {
 		pthread_cond_wait(&runner_awake, &queue_guard);
 
-		while (last) {
+		while (last && ! runner_must_stop ) {
 			queue_process_entry(synth);
 			pthread_mutex_lock(&queue_guard);
+		}
+
+		if (runner_must_stop) {
+			pthread_mutex_lock(&stop_guard);
+			queue_clear();
+			stop_speech();
+			runner_must_stop = 0;
+			pthread_mutex_unlock(&stop_guard);
+			pthread_cond_signal(&stop_acknowledged);
 		}
 	}
 
