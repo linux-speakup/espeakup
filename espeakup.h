@@ -76,7 +76,7 @@ extern espeak_ERROR stop_speech(void);
 extern espeak_ERROR speak_text(struct synth_t *s);
 extern void *softsynth_thread(void *arg);
 extern void stop_runner(void);
-extern void *queue_runner(void *arg);
+extern void *espeak_thread(void *arg);
 extern void *signal_thread(void *arg);
 extern void select_audio_mode(void);
 extern int init_audio(unsigned int rate);

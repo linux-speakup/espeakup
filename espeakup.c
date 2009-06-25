@@ -33,13 +33,6 @@ const char *Version = "0.71";
 /* path to our pid file */
 const char *pidPath = "/var/run/espeakup.pid";
 
-/* default voice settings */
-const int defaultFrequency = 5;
-const int defaultPitch = 5;
-const int defaultRate = 5;
-const int defaultVolume = 5;
-
-char *defaultVoice = NULL;
 int debug = 0;
 
 int self_pipe_fds[2];
@@ -83,7 +76,7 @@ int main(int argc, char **argv)
 	int rate;
 	int err;
 	pthread_t signal_thread_id;
-	pthread_t queue_thread_id;
+	pthread_t espeak_thread_id;
 	pthread_t softsynth_thread_id;
 	struct synth_t s = {
 		.voice = "",
@@ -125,19 +118,20 @@ int main(int argc, char **argv)
 	sigprocmask(SIG_BLOCK, &sigset, NULL);
 
 	/* set up the pipe used to wake the reader. */
- 	if(pipe(self_pipe_fds) < 0) {
- 		perror("Unable to create pipe");
- 		return 5;
- 	}
- 
-	/* Spawn our queue-processing thread. */
-	err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
+	if (pipe(self_pipe_fds) < 0) {
+		perror("Unable to create pipe");
+		return 5;
+	}
+
+	/* Spawn our espeak-interacting thread. */
+	err = pthread_create(&espeak_thread_id, NULL, &espeak_thread, &s);
 	if (err != 0) {
 		return 4;
 	}
 
 	/* Spawn our softsynth thread. */
-	err = pthread_create(&softsynth_thread_id, NULL, &softsynth_thread, &s);
+	err =
+		pthread_create(&softsynth_thread_id, NULL, &softsynth_thread, &s);
 	if (err != 0) {
 		return 4;
 	}

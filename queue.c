@@ -25,6 +25,14 @@
 
 #include "espeakup.h"
 
+/* default voice settings */
+const int defaultFrequency = 5;
+const int defaultPitch = 5;
+const int defaultRate = 5;
+const int defaultVolume = 5;
+
+char *defaultVoice = NULL;
+
 pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
 pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
@@ -185,7 +193,7 @@ void stop_runner(void)
 	pthread_mutex_unlock(&stop_guard);
 }
 
-/* queue_runner is the "main" function of our secondary (queue-processing)
+/* espeak_thread is the "main" function of our secondary (queue-processing)
  * thread.
  * First, lock queue_guard, because it needs to be locked when we call
  * pthread_cond_wait on the runner_awake condition variable.
@@ -205,14 +213,40 @@ void stop_runner(void)
  * 2. We are processing an entry that has just been removed from the queue.
 */
 
-void *queue_runner(void *arg)
+void *espeak_thread(void *arg)
 {
 	struct synth_t *synth = (struct synth_t *) arg;
+	int rate;
+
+	/* initialize espeak */
+	select_audio_mode();
+	rate = espeak_Initialize(audio_mode, 0, NULL, 0);
+	if (rate < 0) {
+		fprintf(stderr, "Unable to initialize espeak.\n");
+		should_run = 0;
+	}
+
+	if (init_audio((unsigned int) rate) < 0) {
+		should_run = 0;
+	}
+
+	/* Setup initial voice parameters */
+	if (defaultVoice) {
+		set_voice(&s, defaultVoice);
+		free(defaultVoice);
+		defaultVoice = NULL;
+	}
+	set_frequency(&s, defaultFrequency, ADJ_SET);
+	set_pitch(&s, defaultPitch, ADJ_SET);
+	set_rate(&s, defaultRate, ADJ_SET);
+	set_volume(&s, defaultVolume, ADJ_SET);
+	espeak_SetParameter(espeakCAPITALS, 0, 0);
+
 	pthread_mutex_lock(&queue_guard);
-	while (1) {
+	while (should_run) {
 		pthread_cond_wait(&runner_awake, &queue_guard);
 
-		while (last && ! runner_must_stop ) {
+		while (should_run && last && !runner_must_stop) {
 			queue_process_entry(synth);
 			pthread_mutex_lock(&queue_guard);
 		}
@@ -227,5 +261,6 @@ void *queue_runner(void *arg)
 		}
 	}
 
+	espeak_Terminate();
 	return NULL;
 }
