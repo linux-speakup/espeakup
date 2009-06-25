@@ -33,25 +33,6 @@ const size_t maxBufferSize = 1025;
 /* synth flush character */
 const int synthFlushChar = 0x18;
 
-static int softFD = 0;
-
-int open_softsynth(void)
-{
-	int rc;
-
-	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
-	if (softFD < 0)
-		rc = 0;
-	else
-		rc = 1;
-	return rc;
-}
-
-void close_softsynth(void)
-{
-	close(softFD);
-}
-
 static int process_command(struct synth_t *s, char *buf, int start)
 {
 	char *cp;
@@ -150,6 +131,13 @@ void *softsynth_thread(void *arg)
 	char buf[maxBufferSize];
 	char *cp;
 
+	/* open the softsynth. */
+	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
+	if (softFD < 0) {
+		perror("Unable to open the softsynth device");
+		should_run = 0;
+	}
+
 	while (should_run) {
 		FD_ZERO(&set);
 		FD_SET(softFD, &set);
@@ -180,5 +168,7 @@ void *softsynth_thread(void *arg)
 		}
 		process_buffer(s, buf, length);
 	}
+	if (softFD)
+		close(softFD);
 	return NULL;
 }

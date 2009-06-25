@@ -74,8 +74,6 @@ extern espeak_ERROR set_volume(struct synth_t *s, int vol,
 							   enum adjust_t adj);
 extern espeak_ERROR stop_speech(void);
 extern espeak_ERROR speak_text(struct synth_t *s);
-extern int open_softsynth(void);
-extern void close_softsynth(void);
 extern void *softsynth_thread(void *arg);
 extern void stop_runner(void);
 extern void *queue_runner(void *arg);

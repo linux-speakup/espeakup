@@ -97,12 +97,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	/* open the softsynth. */
-	if (!open_softsynth()) {
-		perror("Unable to open the softsynth device");
-		return 3;
-	}
-
 /*
  * If we are not in debug mode, become a daemon and store the pid.
  */
@@ -131,6 +125,12 @@ int main(int argc, char **argv)
 
 	/* Spawn our queue-processing thread. */
 	err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
+	if (err != 0) {
+		return 4;
+	}
+
+	/* Spawn our softsynth thread. */
+	err = pthread_create(&softsynth_thread_id, NULL, &softsynth_thread, &s);
 	if (err != 0) {
 		return 4;
 	}
