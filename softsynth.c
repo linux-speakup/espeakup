@@ -234,7 +234,6 @@ void *softsynth_thread(void *arg)
 		cp = strrchr(buf, synthFlushChar);
 		if (cp) {
 			request_espeak_stop();
-			printf("Returned from stop_runner\n");
 			memmove(buf, cp + 1, strlen(cp + 1) + 1);
 			length = strlen(buf);
 		}
