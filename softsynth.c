@@ -142,7 +142,7 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
-void *reader_thread(void *arg)
+void *softsynth_thread(void *arg)
 {
 	struct synth_t *s = (struct synth_t *) arg;
 	fd_set set;
