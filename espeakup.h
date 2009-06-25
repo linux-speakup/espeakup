@@ -22,6 +22,7 @@
 
 /* This was added for gcc 4.3 */
 #include <stddef.h>
+#include <pthread.h>
 
 #include <espeak/speak_lib.h>
 
