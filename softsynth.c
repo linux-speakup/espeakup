@@ -28,10 +28,12 @@
 #include "espeakup.h"
 
 /* max buffer size */
-const size_t maxBufferSize = 1025;
+static const size_t maxBufferSize = 1025;
 
 /* synth flush character */
-const int synthFlushChar = 0x18;
+static const int synthFlushChar = 0x18;
+
+static int softFD = 0;
 
 static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 {
@@ -175,6 +177,24 @@ static void request_espeak_stop(void)
 	pthread_mutex_unlock(&queue_guard);
 }
 
+int open_softsynth(void)
+{
+	int rc = 0;
+	/* open the softsynth. */
+	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
+	if (softFD < 0) {
+		perror("Unable to open the softsynth device");
+		rc = -1;
+	}
+	return rc;
+}
+
+void close_softsynth(void)
+{
+	if (softFD)
+		close(softFD);
+}
+
 void *softsynth_thread(void *arg)
 {
 	struct synth_t *s = (struct synth_t *) arg;
@@ -183,15 +203,7 @@ void *softsynth_thread(void *arg)
 	char buf[maxBufferSize];
 	char *cp;
 	int terminalFD = PIPE_READ_FD;
-	int softFD;
 	int greatestFD;
-
-	/* open the softsynth. */
-	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
-	if (softFD < 0) {
-		perror("Unable to open the softsynth device");
-		should_run = 0;
-	}
 
 	if (terminalFD > softFD)
 		greatestFD = terminalFD;
@@ -231,7 +243,5 @@ void *softsynth_thread(void *arg)
 		}
 		process_buffer(s, buf, length);
 	}
-	if (softFD)
-		close(softFD);
 	return NULL;
 }

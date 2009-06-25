@@ -104,6 +104,16 @@ int main(int argc, char **argv)
 		}
 	}
 
+/* Initialize espeak */
+	if (initialize_espeak(&s) < 0) {
+		return 2;
+	}
+
+/* open the softsynth */
+	if (open_softsynth() < 0) {
+		return 2;
+	}
+
 	/* set up the pipe used to wake the espeak thread */
 	if (pipe(self_pipe_fds) < 0) {
 		perror("Unable to create pipe");
@@ -142,6 +152,7 @@ int main(int argc, char **argv)
 	pthread_join(softsynth_thread_id, NULL);
 	pthread_join(espeak_thread_id, NULL);
 
+	espeak_Terminate();
 	if ( ! debug)
 		unlink(pidPath);
 	return 0;

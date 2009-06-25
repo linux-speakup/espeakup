@@ -206,6 +206,36 @@ static void queue_clear()
 	}
 }
 
+int initialize_espeak(struct synth_t *s)
+{
+	int rate;
+
+	/* initialize espeak */
+	select_audio_mode();
+	rate = espeak_Initialize(audio_mode, 0, NULL, 0);
+	if (rate < 0) {
+		fprintf(stderr, "Unable to initialize espeak.\n");
+		return -1;
+	}
+
+	if (init_audio((unsigned int) rate) < 0) {
+		return -1;
+	}
+
+	/* Setup initial voice parameters */
+	if (defaultVoice) {
+		set_voice(s, defaultVoice);
+		free(defaultVoice);
+		defaultVoice = NULL;
+	}
+	set_frequency(s, defaultFrequency, ADJ_SET);
+	set_pitch(s, defaultPitch, ADJ_SET);
+	set_rate(s, defaultRate, ADJ_SET);
+	set_volume(s, defaultVolume, ADJ_SET);
+	espeak_SetParameter(espeakCAPITALS, 0, 0);
+	return 0;
+}
+
 /* espeak_thread is the "main" function of our secondary (queue-processing)
  * thread.
  * First, lock queue_guard, because it needs to be locked when we call
@@ -225,35 +255,9 @@ static void queue_clear()
  * 1. We are waiting on runner_awake, or
  * 2. We are processing an entry that has just been removed from the queue.
 */
-
 void *espeak_thread(void *arg)
 {
 	struct synth_t *s = (struct synth_t *) arg;
-	int rate;
-
-	/* initialize espeak */
-	select_audio_mode();
-	rate = espeak_Initialize(audio_mode, 0, NULL, 0);
-	if (rate < 0) {
-		fprintf(stderr, "Unable to initialize espeak.\n");
-		should_run = 0;
-	}
-
-	if (init_audio((unsigned int) rate) < 0) {
-		should_run = 0;
-	}
-
-	/* Setup initial voice parameters */
-	if (defaultVoice) {
-		set_voice(s, defaultVoice);
-		free(defaultVoice);
-		defaultVoice = NULL;
-	}
-	set_frequency(s, defaultFrequency, ADJ_SET);
-	set_pitch(s, defaultPitch, ADJ_SET);
-	set_rate(s, defaultRate, ADJ_SET);
-	set_volume(s, defaultVolume, ADJ_SET);
-	espeak_SetParameter(espeakCAPITALS, 0, 0);
 
 	pthread_mutex_lock(&queue_guard);
 	while (should_run) {
