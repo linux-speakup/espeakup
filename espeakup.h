@@ -88,6 +88,5 @@ extern espeak_AUDIO_OUTPUT audio_mode;
 extern pthread_cond_t runner_awake;
 extern pthread_cond_t stop_acknowledged;
 extern pthread_mutex_t queue_guard;
-extern pthread_mutex_t acknowledge_guard;
 
 #endif

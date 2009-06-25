@@ -167,20 +167,11 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 
 static void request_espeak_stop(void)
 {
-	pthread_mutex_lock(&acknowledge_guard);
 	pthread_mutex_lock(&queue_guard);
 	runner_must_stop = 1;
-	pthread_mutex_unlock(&queue_guard);
 	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
-
-	/*
-	 * Runner will see runner_must_stop == 1 next time it locks
-	 * queue_guard, or when it awakens.
-	 * It will lock acknowledge_guard, acknowledge the stop, and signal
-	 * the reader, which will awaken.
-	 */
-	pthread_cond_wait(&stop_acknowledged, &acknowledge_guard);
-	pthread_mutex_unlock(&acknowledge_guard);
+	pthread_cond_wait(&stop_acknowledged, &queue_guard);
+	pthread_mutex_unlock(&queue_guard);
 }
 
 void *softsynth_thread(void *arg)

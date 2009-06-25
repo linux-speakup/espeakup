@@ -265,12 +265,12 @@ void *espeak_thread(void *arg)
 		}
 
 		if (runner_must_stop) {
-			pthread_mutex_lock(&acknowledge_guard);
+			pthread_mutex_lock(&queue_guard);
 			queue_clear();
 			stop_speech();
 			runner_must_stop = 0;
-			pthread_mutex_unlock(&acknowledge_guard);
 			pthread_cond_signal(&stop_acknowledged);
+			pthread_mutex_unlock(&queue_guard);
 		}
 	}
 	pthread_mutex_unlock(&queue_guard);
