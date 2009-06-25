@@ -38,20 +38,11 @@ pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t stop_guard = PTHREAD_MUTEX_INITIALIZER;
 
-struct queue_entry_t {
-	enum command_t cmd;
-	enum adjust_t adjust;
-	int value;
-	char *buf;
-	int len;
-	struct queue_entry_t *next;
-};
-
 volatile int runner_must_stop = 0;
 static struct queue_entry_t *first = NULL;
 static struct queue_entry_t *last = NULL;
 
-static void queue_add(struct queue_entry_t *entry)
+void queue_add(struct queue_entry_t *entry)
 {
 	pthread_mutex_lock(&queue_guard);
 	assert(entry);
@@ -78,7 +69,7 @@ static void free_entry(struct queue_entry_t *entry)
 /* Remove and return the entry at the head of the queue.
  * Return NULL if queue is empty. */
 
-static void queue_remove(void)
+void queue_remove(void)
 {
 	struct queue_entry_t *temp;
 
@@ -100,42 +91,6 @@ void queue_clear(void)
 		queue_remove();
 	}
 	/* We aren't adding data to the queue, so no need to signal. */
-}
-
-void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
-{
-	struct queue_entry_t *entry;
-
-	entry = malloc(sizeof(struct queue_entry_t));
-	if (!entry) {
-		perror("unable to allocate memory for queue entry");
-		return;
-	}
-	entry->cmd = cmd;
-	entry->adjust = adj;
-	entry->value = value;
-	queue_add(entry);
-}
-
-void queue_add_text(char *txt, size_t length)
-{
-	struct queue_entry_t *entry;
-
-	entry = malloc(sizeof(struct queue_entry_t));
-	if (!entry) {
-		perror("unable to allocate memory for queue entry");
-		return;
-	}
-	entry->cmd = CMD_SPEAK_TEXT;
-	entry->adjust = ADJ_SET;
-	entry->buf = strdup(txt);
-	if (!entry->buf) {
-		perror("unable to allocate space for text");
-		free(entry);
-		return;
-	}
-	entry->len = length;
-	queue_add(entry);
 }
 
 static void queue_process_entry(struct synth_t *s)

@@ -43,6 +43,15 @@ enum adjust_t {
 	ADJ_INC,
 };
 
+struct queue_entry_t {
+	enum command_t cmd;
+	enum adjust_t adjust;
+	int value;
+	char *buf;
+	int len;
+	struct queue_entry_t *next;
+};
+
 struct synth_t {
 	int frequency;
 	int pitch;
@@ -57,10 +66,9 @@ struct synth_t {
 extern int debug;
 
 extern void process_cli(int argc, char **argv);
+extern void queue_add(struct queue_entry_t *entry);
+extern void queue_remove(void);
 extern void queue_clear(void);
-extern void queue_add_cmd(enum command_t cmd, enum adjust_t adj,
-						  int value);
-extern void queue_add_text(char *txt, size_t length);
 extern espeak_ERROR set_frequency(struct synth_t *s, int freq,
 								  enum adjust_t adj);
 extern espeak_ERROR set_pitch(struct synth_t *s, int pitch,

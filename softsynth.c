@@ -33,6 +33,42 @@ const size_t maxBufferSize = 1025;
 /* synth flush character */
 const int synthFlushChar = 0x18;
 
+static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
+{
+	struct queue_entry_t *entry;
+
+	entry = malloc(sizeof(struct queue_entry_t));
+	if (!entry) {
+		perror("unable to allocate memory for queue entry");
+		return;
+	}
+	entry->cmd = cmd;
+	entry->adjust = adj;
+	entry->value = value;
+	queue_add(entry);
+}
+
+static void queue_add_text(char *txt, size_t length)
+{
+	struct queue_entry_t *entry;
+
+	entry = malloc(sizeof(struct queue_entry_t));
+	if (!entry) {
+		perror("unable to allocate memory for queue entry");
+		return;
+	}
+	entry->cmd = CMD_SPEAK_TEXT;
+	entry->adjust = ADJ_SET;
+	entry->buf = strdup(txt);
+	if (!entry->buf) {
+		perror("unable to allocate space for text");
+		free(entry);
+		return;
+	}
+	entry->len = length;
+	queue_add(entry);
+}
+
 static int process_command(struct synth_t *s, char *buf, int start)
 {
 	char *cp;
