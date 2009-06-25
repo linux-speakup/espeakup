@@ -278,6 +278,5 @@ void *espeak_thread(void *arg)
 		}
 	}
 	pthread_mutex_unlock(&queue_guard);
-	espeak_Terminate();
 	return NULL;
 }
