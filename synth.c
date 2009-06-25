@@ -257,7 +257,9 @@ void *espeak_thread(void *arg)
 
 	pthread_mutex_lock(&queue_guard);
 	while (should_run) {
-		pthread_cond_wait(&runner_awake, &queue_guard);
+
+		while (should_run && !queue_peek()  && !runner_must_stop)
+			pthread_cond_wait(&runner_awake, &queue_guard);
 
 		while (should_run && queue_peek() && !runner_must_stop) {
 			queue_process_entry(s);
