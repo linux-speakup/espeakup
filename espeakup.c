@@ -73,7 +73,6 @@ int create_pid_file(void)
 int main(int argc, char **argv)
 {
 	sigset_t sigset;
-	int rate;
 	int err;
 	pthread_t signal_thread_id;
 	pthread_t espeak_thread_id;
