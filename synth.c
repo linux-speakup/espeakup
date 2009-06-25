@@ -148,7 +148,6 @@ static void queue_process_entry(struct synth_t *s)
 	espeak_ERROR error;
 	struct espeak_entry_t *current;
 
-	pthread_mutex_lock(&queue_guard);
 	current = (struct espeak_entry_t *) queue_peek();
 	pthread_mutex_unlock(&queue_guard);
 	if (current) {
@@ -198,14 +197,12 @@ static void queue_clear()
 {
 	struct espeak_entry_t *current;
 
-	pthread_mutex_lock(&queue_guard);
 	current = (struct espeak_entry_t *) queue_peek();
 	while (current) {
 		free_entry(current);
 		queue_remove();
 		current = (struct espeak_entry_t *) queue_peek();
 	}
-	pthread_mutex_unlock(&queue_guard);
 }
 
 /* espeak_thread is the "main" function of our secondary (queue-processing)
@@ -267,11 +264,11 @@ void *espeak_thread(void *arg)
 		}
 
 		if (runner_must_stop) {
-			pthread_mutex_lock(&stop_guard);
+			pthread_mutex_lock(&acknowledge_guard);
 			queue_clear();
 			stop_speech();
 			runner_must_stop = 0;
-			pthread_mutex_unlock(&stop_guard);
+			pthread_mutex_unlock(&acknowledge_guard);
 			pthread_cond_signal(&stop_acknowledged);
 		}
 	}
