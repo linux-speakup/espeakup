@@ -179,10 +179,11 @@ static void queue_process_entry(struct synth_t *s)
 			break;
 		}
 
-		pthread_mutex_lock(&queue_guard);
-		if (error == EE_OK)
+		if (error == EE_OK) {
+			pthread_mutex_lock(&queue_guard);
 			queue_remove();
-		pthread_mutex_unlock(&queue_guard);
+			pthread_mutex_unlock(&queue_guard);
+		}
 	}
 }
 
