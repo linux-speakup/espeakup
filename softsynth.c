@@ -174,7 +174,7 @@ static void request_espeak_stop(void)
 	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
 
 	/*
-	 * Runner will see runner_must_stop == 1 next time it locks 
+	 * Runner will see runner_must_stop == 1 next time it locks
 	 * queue_guard, or when it awakens.
 	 * It will lock acknowledge_guard, acknowledge the stop, and signal
 	 * the reader, which will awaken.
