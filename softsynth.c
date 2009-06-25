@@ -156,6 +156,9 @@ void *softsynth_thread(void *arg)
 			break;
 		}
 
+		if (FD_ISSET(terminalFD, &set))
+			break;
+
 		if (!FD_ISSET(softFD, &set))
 			continue;
 
