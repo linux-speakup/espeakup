@@ -39,6 +39,11 @@ volatile int stopped = 0;
 volatile int should_run = 1;
 espeak_AUDIO_OUTPUT audio_mode;
 
+pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
+pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t stop_guard = PTHREAD_MUTEX_INITIALIZER;
+
 int espeakup_is_running(void)
 {
 	int rc;
@@ -100,8 +105,14 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* set up the pipe used to wake the espeak thread */
+	if (pipe(self_pipe_fds) < 0) {
+		perror("Unable to create pipe");
+		return 5;
+	}
+
 	/* create the signal processing thread here. */
-	err = pthread_create(&signal_thread_id, NULL, &signal_thread, NULL);
+	err = pthread_create(&signal_thread_id, NULL, signal_thread, NULL);
 	if (err != 0) {
 		return 4;
 	}
@@ -115,24 +126,24 @@ int main(int argc, char **argv)
 	sigaddset(&sigset, SIGTERM);
 	sigprocmask(SIG_BLOCK, &sigset, NULL);
 
-	/* set up the pipe used to wake the reader. */
-	if (pipe(self_pipe_fds) < 0) {
-		perror("Unable to create pipe");
-		return 5;
+	/* Spawn our softsynth thread. */
+	err = pthread_create(&softsynth_thread_id, NULL, softsynth_thread, &s);
+	if (err != 0) {
+		return 4;
 	}
 
 	/* Spawn our espeak-interacting thread. */
-	err = pthread_create(&espeak_thread_id, NULL, &espeak_thread, &s);
+	err = pthread_create(&espeak_thread_id, NULL, espeak_thread, &s);
 	if (err != 0) {
 		return 4;
 	}
 
-	/* Spawn our softsynth thread. */
-	err =
-		pthread_create(&softsynth_thread_id, NULL, &softsynth_thread, &s);
-	if (err != 0) {
-		return 4;
-	}
+	/* wait for the threads to shut down. */
+	pthread_join(signal_thread_id, NULL);
+	pthread_join(softsynth_thread_id, NULL);
+	pthread_join(espeak_thread_id, NULL);
 
+	if ( ! debug)
+		unlink(pidPath);
 	return 0;
 }

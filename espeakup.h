@@ -44,13 +44,12 @@ enum adjust_t {
 	ADJ_INC,
 };
 
-struct queue_entry_t {
+struct espeak_entry_t {
 	enum command_t cmd;
 	enum adjust_t adjust;
 	int value;
 	char *buf;
 	int len;
-	struct queue_entry_t *next;
 };
 
 struct synth_t {
@@ -67,26 +66,12 @@ struct synth_t {
 extern int debug;
 
 extern void process_cli(int argc, char **argv);
-extern void queue_add(struct queue_entry_t *entry);
+extern void queue_add(void *entry);
 extern void queue_remove(void);
-extern void queue_clear(void);
-extern espeak_ERROR set_frequency(struct synth_t *s, int freq,
-								  enum adjust_t adj);
-extern espeak_ERROR set_pitch(struct synth_t *s, int pitch,
-							  enum adjust_t adj);
-extern espeak_ERROR set_punctuation(struct synth_t *s, int punct,
-									enum adjust_t adj);
-extern espeak_ERROR set_rate(struct synth_t *s, int rate,
-							 enum adjust_t adj);
-extern espeak_ERROR set_voice(struct synth_t *s, char *voice);
-extern espeak_ERROR set_volume(struct synth_t *s, int vol,
-							   enum adjust_t adj);
-extern espeak_ERROR stop_speech(void);
-extern espeak_ERROR speak_text(struct synth_t *s);
-extern void *softsynth_thread(void *arg);
-extern void stop_runner(void);
-extern void *espeak_thread(void *arg);
+extern void *queue_peek(void);
 extern void *signal_thread(void *arg);
+extern void *softsynth_thread(void *arg);
+extern void *espeak_thread(void *arg);
 extern void select_audio_mode(void);
 extern int init_audio(unsigned int rate);
 extern void lock_audio_mutex(void);
@@ -99,4 +84,10 @@ extern int self_pipe_fds[2];
 #define PIPE_WRITE_FD (self_pipe_fds[1])
 
 extern espeak_AUDIO_OUTPUT audio_mode;
+
+extern pthread_cond_t runner_awake;
+extern pthread_cond_t stop_acknowledged;
+extern pthread_mutex_t queue_guard;
+extern pthread_mutex_t stop_guard;
+
 #endif

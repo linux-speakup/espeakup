@@ -35,9 +35,9 @@ const int synthFlushChar = 0x18;
 
 static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 {
-	struct queue_entry_t *entry;
+	struct espeak_entry_t *entry;
 
-	entry = malloc(sizeof(struct queue_entry_t));
+	entry = malloc(sizeof(struct espeak_entry_t));
 	if (!entry) {
 		perror("unable to allocate memory for queue entry");
 		return;
@@ -45,14 +45,17 @@ static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 	entry->cmd = cmd;
 	entry->adjust = adj;
 	entry->value = value;
-	queue_add(entry);
+	pthread_mutex_lock(&queue_guard);
+	queue_add((void *) entry);
+	pthread_mutex_unlock(&queue_guard);
+	pthread_cond_signal(&runner_awake);
 }
 
 static void queue_add_text(char *txt, size_t length)
 {
-	struct queue_entry_t *entry;
+	struct espeak_entry_t *entry;
 
-	entry = malloc(sizeof(struct queue_entry_t));
+	entry = malloc(sizeof(struct espeak_entry_t));
 	if (!entry) {
 		perror("unable to allocate memory for queue entry");
 		return;
@@ -66,7 +69,10 @@ static void queue_add_text(char *txt, size_t length)
 		return;
 	}
 	entry->len = length;
-	queue_add(entry);
+	pthread_mutex_lock(&queue_guard);
+	queue_add((void *) entry);
+	pthread_mutex_unlock(&queue_guard);
+	pthread_cond_signal(&runner_awake);
 }
 
 static int process_command(struct synth_t *s, char *buf, int start)
@@ -159,6 +165,15 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
+static void request_espeak_stop(void)
+{
+	pthread_mutex_lock(&stop_guard);
+	runner_must_stop = 1;
+	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
+	pthread_cond_wait(&stop_acknowledged, &stop_guard);
+	pthread_mutex_unlock(&stop_guard);
+}
+
 void *softsynth_thread(void *arg)
 {
 	struct synth_t *s = (struct synth_t *) arg;
@@ -166,9 +181,9 @@ void *softsynth_thread(void *arg)
 	ssize_t length;
 	char buf[maxBufferSize];
 	char *cp;
- 	int terminalFD = PIPE_READ_FD;
+	int terminalFD = PIPE_READ_FD;
 	int softFD;
- 	int greatestFD;
+	int greatestFD;
 
 	/* open the softsynth. */
 	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
@@ -177,16 +192,16 @@ void *softsynth_thread(void *arg)
 		should_run = 0;
 	}
 
- 	if (terminalFD > softFD)
- 		greatestFD = terminalFD;
- 	else
- 		greatestFD = softFD;
+	if (terminalFD > softFD)
+		greatestFD = terminalFD;
+	else
+		greatestFD = softFD;
 	while (should_run) {
 		FD_ZERO(&set);
 		FD_SET(softFD, &set);
- 		FD_SET(terminalFD, &set);
+		FD_SET(terminalFD, &set);
 
- 		if (select(greatestFD + 1, &set, NULL, NULL, NULL) < 0) {
+		if (select(greatestFD + 1, &set, NULL, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
 			perror("Select failed");
@@ -209,7 +224,8 @@ void *softsynth_thread(void *arg)
 		*(buf + length) = 0;
 		cp = strrchr(buf, synthFlushChar);
 		if (cp) {
-			stop_runner();
+			request_espeak_stop();
+			printf("Returned from stop_runner\n");
 			memmove(buf, cp + 1, strlen(cp + 1) + 1);
 			length = strlen(buf);
 		}
