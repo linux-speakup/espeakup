@@ -84,6 +84,7 @@ extern void select_audio_mode(void);
 extern int init_audio(unsigned int rate);
 extern void lock_audio_mutex(void);
 extern void unlock_audio_mutex(void);
+extern volatile int should_run;
 extern volatile int stopped;
 extern volatile int runner_must_stop;
 

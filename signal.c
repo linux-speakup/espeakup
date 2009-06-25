@@ -36,7 +36,6 @@ void *signal_thread(void *arg)
 	struct sigaction temp;
 		sigset_t sigset;
 		int sig;
-		int should_run = 1;
 
 	/* install dummy handlers for the signals we want to process */
 	temp.sa_handler = dummy_handler;
