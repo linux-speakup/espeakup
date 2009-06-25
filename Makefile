@@ -13,6 +13,7 @@ SRCS = \
 	cli.c \
 	espeakup.c  \
 	queue.c \
+	signal.c \
 		softsynth.c \
 	synth.c
 

@@ -43,6 +43,7 @@ char *defaultVoice = NULL;
 int debug = 0;
 
 volatile int stopped = 0;
+volatile int should_run = 1;
 espeak_AUDIO_OUTPUT audio_mode;
 
 int espeakup_is_running(void)
@@ -75,27 +76,14 @@ int create_pid_file(void)
 	return 0;
 }
 
-void espeakup_sighandler(int sig)
-{
-	if (debug)
-		printf("Caught signal %i\n", sig);
-
-	/* clear the queue */
-	stop_runner();
-
-	/* shut down espeak and close the softsynth */
-	espeak_Terminate();
-	close_softsynth();
-
-	if (!debug)
-		unlink(pidPath);
-	exit(0);
-}
-
 int main(int argc, char **argv)
 {
+	sigset_t sigset;
 	int rate;
+	int err;
+	pthread_t signal_thread_id;
 	pthread_t queue_thread_id;
+	pthread_t softsynth_thread_id;
 	struct synth_t s = {
 		.voice = "",
 	};
@@ -115,54 +103,37 @@ int main(int argc, char **argv)
 		return 3;
 	}
 
-	/* register signal handler */
-	signal(SIGINT, espeakup_sighandler);
-	signal(SIGTERM, espeakup_sighandler);
-
-
+/*
+ * If we are not in debug mode, become a daemon and store the pid.
+ */
 	if (!debug) {
-		/* become a daemon */
 		daemon(0, 1);
-
-		/* write our pid file. */
 		if (create_pid_file() < 0) {
 			perror("Unable to create pid file");
 			return 2;
 		}
 	}
 
-	/* initialize espeak */
-	select_audio_mode();
-	rate = espeak_Initialize(audio_mode, 0, NULL, 0);
-	if (rate < 0) {
-		fprintf(stderr, "Unable to initialize espeak.\n");
-		return 5;
-	}
-
-	if (init_audio((unsigned int) rate) < 0) {
-		return 6;
-	}
-
-	/* Setup initial voice parameters */
-	if (defaultVoice) {
-		set_voice(&s, defaultVoice);
-		free(defaultVoice);
-		defaultVoice = NULL;
-	}
-	set_frequency(&s, defaultFrequency, ADJ_SET);
-	set_pitch(&s, defaultPitch, ADJ_SET);
-	set_rate(&s, defaultRate, ADJ_SET);
-	set_volume(&s, defaultVolume, ADJ_SET);
-	espeak_SetParameter(espeakCAPITALS, 0, 0);
-
-	/* Spawn our queue-processing thread. */
-	int err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
+	/* create the signal processing thread here. */
+	err = pthread_create(&signal_thread_id, NULL, &signal_thread, NULL);
 	if (err != 0) {
 		return 4;
 	}
 
-	/* run the main loop */
-	main_loop(&s);
+	/*
+	 * Set up the signal mask which will be the default for all threads.
+	 * We are handling sigint and sigterm, so block them.
+	 */
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGINT);
+	sigaddset(&sigset, SIGTERM);
+	sigprocmask(SIG_BLOCK, &sigset, NULL);
+
+	/* Spawn our queue-processing thread. */
+	err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
+	if (err != 0) {
+		return 4;
+	}
 
 	return 0;
 }

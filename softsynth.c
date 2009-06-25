@@ -35,6 +35,23 @@ const int synthFlushChar = 0x18;
 
 static int softFD = 0;
 
+int open_softsynth(void)
+{
+	int rc;
+
+	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
+	if (softFD < 0)
+		rc = 0;
+	else
+		rc = 1;
+	return rc;
+}
+
+void close_softsynth(void)
+{
+	close(softFD);
+}
+
 static int process_command(struct synth_t *s, char *buf, int start)
 {
 	char *cp;
@@ -125,34 +142,18 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
-int open_softsynth(void)
+void *reader_thread(void *arg)
 {
-	int rc;
-
-	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
-	if (softFD < 0)
-		rc = 0;
-	else
-		rc = 1;
-	return rc;
-}
-
-void close_softsynth(void)
-{
-	close(softFD);
-}
-
-void main_loop(struct synth_t *s)
-{
+	struct synth_t *s = (struct synth_t *) arg;
 	fd_set set;
 	ssize_t length;
 	char buf[maxBufferSize];
 	char *cp;
 
-	while (1) {
-
+	while (should_run) {
 		FD_ZERO(&set);
 		FD_SET(softFD, &set);
+
 		if (select(softFD + 1, &set, NULL, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
@@ -179,4 +180,5 @@ void main_loop(struct synth_t *s)
 		}
 		process_buffer(s, buf, length);
 	}
+	return NULL;
 }
