@@ -167,6 +167,7 @@ void *softsynth_thread(void *arg)
 	char buf[maxBufferSize];
 	char *cp;
  	int terminalFD = PIPE_READ_FD;
+	int softFD;
  	int greatestFD;
 
 	/* open the softsynth. */
