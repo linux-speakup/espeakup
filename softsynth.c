@@ -47,8 +47,8 @@ static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 	entry->value = value;
 	pthread_mutex_lock(&queue_guard);
 	queue_add((void *) entry);
-	pthread_mutex_unlock(&queue_guard);
 	pthread_cond_signal(&runner_awake);
+	pthread_mutex_unlock(&queue_guard);
 }
 
 static void queue_add_text(char *txt, size_t length)
@@ -71,8 +71,8 @@ static void queue_add_text(char *txt, size_t length)
 	entry->len = length;
 	pthread_mutex_lock(&queue_guard);
 	queue_add((void *) entry);
-	pthread_mutex_unlock(&queue_guard);
 	pthread_cond_signal(&runner_awake);
+	pthread_mutex_unlock(&queue_guard);
 }
 
 static int process_command(struct synth_t *s, char *buf, int start)
