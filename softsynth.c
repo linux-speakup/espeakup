@@ -130,6 +130,8 @@ void *softsynth_thread(void *arg)
 	ssize_t length;
 	char buf[maxBufferSize];
 	char *cp;
+ 	int terminalFD = PIPE_READ_FD;
+ 	int greatestFD;
 
 	/* open the softsynth. */
 	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
@@ -138,11 +140,16 @@ void *softsynth_thread(void *arg)
 		should_run = 0;
 	}
 
+ 	if (terminalFD > softFD)
+ 		greatestFD = terminalFD;
+ 	else
+ 		greatestFD = softFD;
 	while (should_run) {
 		FD_ZERO(&set);
 		FD_SET(softFD, &set);
+ 		FD_SET(terminalFD, &set);
 
-		if (select(softFD + 1, &set, NULL, NULL, NULL) < 0) {
+ 		if (select(greatestFD + 1, &set, NULL, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
 			perror("Select failed");

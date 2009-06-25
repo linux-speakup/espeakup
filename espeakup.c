@@ -42,6 +42,7 @@ const int defaultVolume = 5;
 char *defaultVoice = NULL;
 int debug = 0;
 
+int self_pipe_fds[2];
 volatile int stopped = 0;
 volatile int should_run = 1;
 espeak_AUDIO_OUTPUT audio_mode;
@@ -123,6 +124,12 @@ int main(int argc, char **argv)
 	sigaddset(&sigset, SIGTERM);
 	sigprocmask(SIG_BLOCK, &sigset, NULL);
 
+	/* set up the pipe used to wake the reader. */
+ 	if(pipe(self_pipe_fds) < 0) {
+ 		perror("Unable to create pipe");
+ 		return 5;
+ 	}
+ 
 	/* Spawn our queue-processing thread. */
 	err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
 	if (err != 0) {

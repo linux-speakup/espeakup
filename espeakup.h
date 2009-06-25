@@ -85,6 +85,9 @@ extern void unlock_audio_mutex(void);
 extern volatile int should_run;
 extern volatile int stopped;
 extern volatile int runner_must_stop;
+extern int self_pipe_fds[2];
+#define PIPE_READ_FD (self_pipe_fds[0])
+#define PIPE_WRITE_FD (self_pipe_fds[1])
 
 extern espeak_AUDIO_OUTPUT audio_mode;
 #endif

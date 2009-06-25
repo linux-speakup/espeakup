@@ -19,6 +19,9 @@
 
 #include <signal.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#define STOP_MSG "s"
 
 #include "espeakup.h"
 
@@ -57,5 +60,7 @@ void *signal_thread(void *arg)
 			break;
 		}
 	}
+	/* Tell the reader to stop, if it is in a select() call. */
+	write(PIPE_WRITE_FD, STOP_MSG, strlen(STOP_MSG));
 	return NULL;
 }
