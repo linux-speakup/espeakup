@@ -104,6 +104,21 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* create the signal processing thread here. */
+	err = pthread_create(&signal_thread_id, NULL, signal_thread, NULL);
+	if (err != 0) {
+		return 4;
+	}
+
+	/*
+	 * Set up the signal mask which will be the default for all threads.
+	 * We are handling sigint and sigterm, so block them.
+	 */
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGINT);
+	sigaddset(&sigset, SIGTERM);
+	sigprocmask(SIG_BLOCK, &sigset, NULL);
+
 /* Initialize espeak */
 	if (initialize_espeak(&s) < 0) {
 		return 2;
@@ -119,21 +134,6 @@ int main(int argc, char **argv)
 		perror("Unable to create pipe");
 		return 5;
 	}
-
-	/* create the signal processing thread here. */
-	err = pthread_create(&signal_thread_id, NULL, signal_thread, NULL);
-	if (err != 0) {
-		return 4;
-	}
-
-	/*
-	 * Set up the signal mask which will be the default for all threads.
-	 * We are handling sigint and sigterm, so block them.
-	 */
-	sigemptyset(&sigset);
-	sigaddset(&sigset, SIGINT);
-	sigaddset(&sigset, SIGTERM);
-	sigprocmask(SIG_BLOCK, &sigset, NULL);
 
 	/* Spawn our softsynth thread. */
 	err = pthread_create(&softsynth_thread_id, NULL, softsynth_thread, &s);
@@ -153,6 +153,7 @@ int main(int argc, char **argv)
 	pthread_join(espeak_thread_id, NULL);
 
 	espeak_Terminate();
+	close_softsynth();
 	if ( ! debug)
 		unlink(pidPath);
 	return 0;
