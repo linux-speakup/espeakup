@@ -46,14 +46,18 @@ void *signal_thread(void *arg)
 	sigaction(SIGINT, &temp, NULL);
 	sigaction(SIGTERM, &temp, NULL);
 
+	pthread_mutex_lock(&queue_guard);
 	while(should_run) {
+		pthread_mutex_unlock(&queue_guard);
 		sigfillset(&sigset);
 		sigwait(&sigset, &sig);
 		switch (sig) {
 		case SIGINT:
 		case SIGTERM:
 			printf("This is where we shut down.\n");
+			pthread_mutex_lock(&queue_guard);
 			should_run = 0;
+			pthread_mutex_unlock(&queue_guard);
 			break;
 		default:
 			printf("espeakup caught signal %d\n", sig);
