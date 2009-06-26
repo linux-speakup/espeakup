@@ -30,21 +30,12 @@
 #include "espeakup.h"
 
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
+static volatile int stopped = 0;
 
 static snd_pcm_t *handle;
 static snd_pcm_hw_params_t *params;
 snd_pcm_status_t *status;
 static int dir = 0;
-
-void lock_audio_mutex(void)
-{
-	pthread_mutex_lock(&audio_mutex);
-}
-
-void unlock_audio_mutex(void)
-{
-	pthread_mutex_unlock(&audio_mutex);
-}
 
 int sound_error(int err, const char *msg)
 {
@@ -68,14 +59,14 @@ static int alsa_play_callback(short *audio, int numsamples,
 	int to_write;
 	snd_pcm_state_t state;
 
-	lock_audio_mutex();
+	pthread_mutex_lock(&audio_mutex);
 	if (stopped) {
 		snd_pcm_drop(handle);
 		stopped = 0;
-		unlock_audio_mutex();
+		pthread_mutex_unlock(&audio_mutex);
 		return 1;
 	}
-	unlock_audio_mutex();
+	pthread_mutex_unlock(&audio_mutex);
 
 	snd_pcm_status(handle, status);
 	state = snd_pcm_status_get_state(status);
@@ -164,4 +155,18 @@ int init_audio(unsigned int rate)
 
 	espeak_SetSynthCallback(alsa_play_callback);
 	return 0;
+}
+
+void stop_audio(void)
+{
+	pthread_mutex_lock(&audio_mutex);
+	stopped = 1;
+	pthread_mutex_unlock(&audio_mutex);
+}
+
+void allow_audio(void)
+{
+	pthread_mutex_lock(&audio_mutex);
+	stopped = 0;
+	pthread_mutex_unlock(&audio_mutex);
 }

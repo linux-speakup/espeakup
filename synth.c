@@ -125,9 +125,7 @@ static espeak_ERROR set_volume(struct synth_t * s, int vol, enum adjust_t adj)
 
 static espeak_ERROR stop_speech(void)
 {
-	lock_audio_mutex();
-	stopped = 1;
-	unlock_audio_mutex();
+	stop_audio();
 	return (espeak_Cancel());
 }
 
@@ -135,9 +133,7 @@ static espeak_ERROR speak_text(struct synth_t * s)
 {
 	espeak_ERROR rc;
 
-	lock_audio_mutex();
-	stopped = 0;
-	unlock_audio_mutex();
+	allow_audio();
 	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL,
 					  NULL);
 	return rc;

@@ -35,7 +35,6 @@ const char *pidPath = "/var/run/espeakup.pid";
 int debug = 0;
 
 int self_pipe_fds[2];
-volatile int stopped = 0;
 volatile int should_run = 1;
 espeak_AUDIO_OUTPUT audio_mode;
 
