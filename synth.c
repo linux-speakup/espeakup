@@ -213,7 +213,7 @@ int initialize_espeak(struct synth_t *s)
 
 	/* initialize espeak */
 	select_audio_mode();
-	rate = espeak_Initialize(audio_mode, 0, NULL, 0);
+	rate = espeak_Initialize(audio_mode, 50, NULL, 0);
 	if (rate < 0) {
 		fprintf(stderr, "Unable to initialize espeak.\n");
 		return -1;
