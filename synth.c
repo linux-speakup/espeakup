@@ -277,6 +277,7 @@ void *espeak_thread(void *arg)
 			pthread_cond_signal(&stop_acknowledged);
 		}
 	}
+	pthread_cond_signal(&stop_acknowledged);
 	pthread_mutex_unlock(&queue_guard);
 	return NULL;
 }
