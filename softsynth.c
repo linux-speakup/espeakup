@@ -209,29 +209,41 @@ void *softsynth_thread(void *arg)
 		greatestFD = terminalFD;
 	else
 		greatestFD = softFD;
+	pthread_mutex_lock(&queue_guard);
 	while (should_run) {
+		pthread_mutex_unlock(&queue_guard);
 		FD_ZERO(&set);
 		FD_SET(softFD, &set);
 		FD_SET(terminalFD, &set);
 
 		if (select(greatestFD + 1, &set, NULL, NULL, NULL) < 0) {
-			if (errno == EINTR)
+			if (errno == EINTR) {
+				pthread_mutex_lock(&queue_guard);
 				continue;
+			}
 			perror("Select failed");
+			pthread_mutex_lock(&queue_guard);
 			break;
 		}
 
-		if (FD_ISSET(terminalFD, &set))
+		if (FD_ISSET(terminalFD, &set)) {
+			pthread_mutex_lock(&queue_guard);
 			break;
+		}
 
-		if (!FD_ISSET(softFD, &set))
+		if (!FD_ISSET(softFD, &set)) {
+			pthread_mutex_lock(&queue_guard);
 			continue;
+		}
 
 		length = read(softFD, buf, maxBufferSize - 1);
 		if (length < 0) {
-			if (errno == EAGAIN || errno == EINTR)
+			if (errno == EAGAIN || errno == EINTR) {
+				pthread_mutex_lock(&queue_guard);
 				continue;
+			}
 			perror("Read from softsynth failed");
+			pthread_mutex_lock(&queue_guard);
 			break;
 		}
 		*(buf + length) = 0;
@@ -242,6 +254,8 @@ void *softsynth_thread(void *arg)
 			length = strlen(buf);
 		}
 		process_buffer(s, buf, length);
+		pthread_mutex_lock(&queue_guard);
 	}
+	pthread_mutex_unlock(&queue_guard);
 	return NULL;
 }
