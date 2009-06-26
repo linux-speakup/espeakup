@@ -256,6 +256,7 @@ void *softsynth_thread(void *arg)
 		process_buffer(s, buf, length);
 		pthread_mutex_lock(&queue_guard);
 	}
+	pthread_cond_signal(&runner_awake);
 	pthread_mutex_unlock(&queue_guard);
 	return NULL;
 }
