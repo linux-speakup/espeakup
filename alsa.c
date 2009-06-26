@@ -30,7 +30,7 @@
 #include "espeakup.h"
 
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
-static volatile int stopped = 0;
+static volatile int stop_requested = 0;
 
 static snd_pcm_t *handle;
 static snd_pcm_hw_params_t *params;
@@ -60,9 +60,9 @@ static int alsa_play_callback(short *audio, int numsamples,
 	snd_pcm_state_t state;
 
 	pthread_mutex_lock(&audio_mutex);
-	if (stopped) {
+	if (stop_requested) {
 		snd_pcm_drop(handle);
-		stopped = 0;
+		stop_requested = 0;
 		pthread_mutex_unlock(&audio_mutex);
 		return 1;
 	}
@@ -160,13 +160,13 @@ int init_audio(unsigned int rate)
 void stop_audio(void)
 {
 	pthread_mutex_lock(&audio_mutex);
-	stopped = 1;
+	stop_requested = 1;
 	pthread_mutex_unlock(&audio_mutex);
 }
 
 void allow_audio(void)
 {
 	pthread_mutex_lock(&audio_mutex);
-	stopped = 0;
+	stop_requested = 0;
 	pthread_mutex_unlock(&audio_mutex);
 }
