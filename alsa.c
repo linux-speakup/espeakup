@@ -51,8 +51,7 @@ int minimum(int x, int y)
 		return y;
 }
 
-static int alsa_play_callback(short *audio, int numsamples,
-							  espeak_EVENT * events)
+static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 {
 	int samples_written = 0;
 	int avail;
@@ -77,7 +76,6 @@ static int alsa_play_callback(short *audio, int numsamples,
 		avail = snd_pcm_avail_update(handle);
 		if (avail <= 0)
 			continue;
-		avail = minimum(avail, 32 * 2);
 		to_write = minimum(avail, numsamples);
 		samples_written = snd_pcm_writei(handle, audio, to_write);
 		if (samples_written < 0) {
@@ -98,7 +96,6 @@ void select_audio_mode(void)
 int init_audio(unsigned int rate)
 {
 	int rc;
-
 
 	/* Open PCM device for playback. */
 	rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -153,7 +150,7 @@ int init_audio(unsigned int rate)
 	if (rc < 0)
 		return sound_error(rc, "unable to set hw parameters");
 
-	espeak_SetSynthCallback(alsa_play_callback);
+	espeak_SetSynthCallback(alsa_callback);
 	return 0;
 }
 
