@@ -58,24 +58,19 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	int samples_written = 0;
 	int avail;
 	int to_write;
-	int rc;
 	snd_pcm_state_t state;
 	int user_data_new;
 
 	lock_audio_mutex();
 	user_data_new = *(int *) events->user_data;
 	if (stop_requested) {
-		rc = snd_pcm_drop(handle);
-		while(rc < 0) {
+		if(snd_pcm_drop(handle) < 0) {
 			fprintf(stderr, "Negative return from snd_pcm_drop!\n");
-			/* Try to reset stream. */
-			snd_pcm_prepare(handle);
-			rc = snd_pcm_drop(handle);
+			return 1;
 		}
 		stop_requested = 0;
 		discarding_packets = 1;
 	}
-
 	unlock_audio_mutex();
 
 	/*
@@ -86,7 +81,6 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	 * If they are different, a new stream has started.  We can stop
 	 * discarding.  Just process the new data.
 	 */
-
 	if (discarding_packets) {
 		if (user_data_new == user_data_old)
 			return 1;	/* Discard stale data. */
@@ -100,7 +94,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	if (state != SND_PCM_STATE_RUNNING)
 		snd_pcm_prepare(handle);
 
-	while (numsamples > 0) {
+	while (numsamples > 0 && ! stop_requested) {
 		avail = snd_pcm_avail_update(handle);
 		if (avail == 0)
 			continue;
