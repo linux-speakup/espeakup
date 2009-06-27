@@ -74,8 +74,13 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 
 	while (numsamples > 0) {
 		avail = snd_pcm_avail_update(handle);
-		if (avail <= 0)
+		if (avail == 0)
 			continue;
+		if(avail < 0) {
+			/* Apparently this also can fail on buffer underrun. */
+			snd_pcm_prepare(handle);
+			continue;
+		}
 		to_write = minimum(avail, numsamples);
 		samples_written = snd_pcm_writei(handle, audio, to_write);
 		if (samples_written < 0) {
