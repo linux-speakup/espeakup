@@ -62,7 +62,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	snd_pcm_state_t state;
 	int user_data_new;
 
-	pthread_mutex_lock(&audio_mutex);
+	lock_audio_mutex();
 	user_data_new = *(int *) events->user_data;
 	if (stop_requested) {
 		rc = snd_pcm_drop(handle);
@@ -76,7 +76,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 		discarding_packets = 1;
 	}
 
-	pthread_mutex_unlock(&audio_mutex);
+	unlock_audio_mutex();
 
 	/*
 	 * If discarding_packets is true, then do the following.
@@ -189,9 +189,9 @@ int init_audio(unsigned int rate)
 
 void stop_audio(void)
 {
-	pthread_mutex_lock(&audio_mutex);
+	lock_audio_mutex();
 	stop_requested = 1;
-	pthread_mutex_unlock(&audio_mutex);
+	unlock_audio_mutex();
 }
 
 void lock_audio_mutex(void)
