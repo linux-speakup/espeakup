@@ -37,13 +37,23 @@ static snd_pcm_hw_params_t *params;
 snd_pcm_status_t *status;
 static int dir = 0;
 
-int sound_error(int err, const char *msg)
+static void lock_audio_mutex(void)
+{
+	pthread_mutex_lock(&audio_mutex);
+}
+
+static void unlock_audio_mutex(void)
+{
+	pthread_mutex_unlock(&audio_mutex);
+}
+
+static int sound_error(int err, const char *msg)
 {
 	fprintf(stderr, "%s: %s\n", msg, snd_strerror(err));
 	return err;
 }
 
-int minimum(int x, int y)
+static int minimum(int x, int y)
 {
 	if (x <= y)
 		return x;
@@ -68,7 +78,6 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 			fprintf(stderr, "Negative return from snd_pcm_drop!\n");
 			return 1;
 		}
-		stop_requested = 0;
 		discarding_packets = 1;
 	}
 	unlock_audio_mutex();
@@ -188,12 +197,10 @@ void stop_audio(void)
 	unlock_audio_mutex();
 }
 
-void lock_audio_mutex(void)
-{
-	pthread_mutex_lock(&audio_mutex);
-}
-
-void unlock_audio_mutex(void)
-{
-	pthread_mutex_unlock(&audio_mutex);
-}
+	void start_audio(int *user_data)
+	{
+	lock_audio_mutex();
+	*user_data = (*user_data + 1) % 100;
+	stop_requested = 0;
+	unlock_audio_mutex();
+	}

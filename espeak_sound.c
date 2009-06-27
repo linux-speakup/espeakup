@@ -15,12 +15,7 @@ void stop_audio(void)
 	return;
 }
 
-void lock_audio_mutex(void)
-{
-	return;
-}
-
-void unlock_audio_mutex(void)
+void start_audio(int *user_data)
 {
 	return;
 }

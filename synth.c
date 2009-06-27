@@ -130,9 +130,7 @@ static espeak_ERROR stop_speech(void)
 
 	stop_audio();
 	rc = espeak_Cancel();
-	lock_audio_mutex();
-	user_data = (user_data + 1) % 100;
-	unlock_audio_mutex();
+	start_audio(&user_data);
 	return rc;
 }
 
