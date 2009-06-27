@@ -53,20 +53,41 @@ int minimum(int x, int y)
 
 static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 {
+	static int discarding_packets = 0;
+	static int user_data_old = 0;
 	int samples_written = 0;
 	int avail;
 	int to_write;
 	snd_pcm_state_t state;
+	int user_data_new;
 
 	pthread_mutex_lock(&audio_mutex);
+	user_data_new = *(int *) events->user_data;
 	if (stop_requested) {
 		snd_pcm_drop(handle);
 		stop_requested = 0;
-		pthread_mutex_unlock(&audio_mutex);
-		return 1;
+		discarding_packets = 1;
 	}
+
 	pthread_mutex_unlock(&audio_mutex);
 
+	/*
+	 * If discarding_packets is true, then do the following.
+	 * Compare user_data_old and user_data_new.  If they are equal,
+	 * then espeak is still sending stale data through the callback.
+	 * Keep on discarding it, and return 1.
+	 * If they are different, a new stream has started.  We can stop
+	 * discarding.  Just process the new data.
+	 */
+
+	if (discarding_packets) {
+		if (user_data_new == user_data_old)
+			return 1;	/* Discard stale data. */
+		else
+			discarding_packets = 0;
+	}
+
+	user_data_old = user_data_new;
 	snd_pcm_status(handle, status);
 	state = snd_pcm_status_get_state(status);
 	if (state != SND_PCM_STATE_RUNNING)
@@ -76,7 +97,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 		avail = snd_pcm_avail_update(handle);
 		if (avail == 0)
 			continue;
-		if(avail < 0) {
+		if (avail < 0) {
 			/* Apparently this also can fail on buffer underrun. */
 			snd_pcm_prepare(handle);
 			continue;
@@ -166,9 +187,12 @@ void stop_audio(void)
 	pthread_mutex_unlock(&audio_mutex);
 }
 
-void allow_audio(void)
+void lock_audio_mutex(void)
 {
 	pthread_mutex_lock(&audio_mutex);
-	stop_requested = 0;
+}
+
+void unlock_audio_mutex(void)
+{
 	pthread_mutex_unlock(&audio_mutex);
 }

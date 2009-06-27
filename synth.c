@@ -130,7 +130,9 @@ static espeak_ERROR stop_speech(void)
 
 	stop_audio();
 	rc = espeak_Cancel();
+	lock_audio_mutex();
 	user_data = (user_data + 1) % 100;
+	unlock_audio_mutex();
 	return rc;
 }
 
@@ -138,7 +140,6 @@ static espeak_ERROR speak_text(struct synth_t * s)
 {
 	espeak_ERROR rc;
 
-	allow_audio();
 	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL,
 					  &user_data);
 	return rc;

@@ -15,7 +15,12 @@ void stop_audio(void)
 	return;
 }
 
-void allow_audio(void)
+void lock_audio_mutex(void)
+{
+	return;
+}
+
+void unlock_audio_mutex(void)
 {
 	return;
 }
