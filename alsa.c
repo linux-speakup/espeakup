@@ -58,13 +58,20 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	int samples_written = 0;
 	int avail;
 	int to_write;
+	int rc;
 	snd_pcm_state_t state;
 	int user_data_new;
 
 	pthread_mutex_lock(&audio_mutex);
 	user_data_new = *(int *) events->user_data;
 	if (stop_requested) {
-		snd_pcm_drop(handle);
+		rc = snd_pcm_drop(handle);
+		while(rc < 0) {
+			fprintf(stderr, "Negative return from snd_pcm_drop!\n");
+			/* Try to reset stream. */
+			snd_pcm_prepare(handle);
+			rc = snd_pcm_drop(handle);
+		}
 		stop_requested = 0;
 		discarding_packets = 1;
 	}
