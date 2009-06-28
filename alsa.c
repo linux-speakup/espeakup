@@ -103,13 +103,14 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	if (state != SND_PCM_STATE_RUNNING)
 		snd_pcm_prepare(handle);
 
+	lock_audio_mutex();
 	while (numsamples > 0 && ! stop_requested) {
+		unlock_audio_mutex();
 		avail = snd_pcm_avail_update(handle);
-		if (avail == 0)
-			continue;
-		if (avail < 0) {
-			/* Apparently this also can fail on buffer underrun. */
-			snd_pcm_prepare(handle);
+		if (avail <= 0) {
+			if (avail < 0)
+				snd_pcm_prepare(handle);
+			lock_audio_mutex();
 			continue;
 		}
 		to_write = minimum(avail, numsamples);
@@ -120,7 +121,9 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 			numsamples -= samples_written;
 			audio += samples_written;
 		}
+		lock_audio_mutex();
 	}
+	unlock_audio_mutex();
 	return 0;
 }
 
@@ -197,10 +200,10 @@ void stop_audio(void)
 	unlock_audio_mutex();
 }
 
-	void start_audio(int *user_data)
-	{
+void start_audio(int *user_data)
+{
 	lock_audio_mutex();
 	*user_data = (*user_data + 1) % 100;
 	stop_requested = 0;
 	unlock_audio_mutex();
-	}
+}
