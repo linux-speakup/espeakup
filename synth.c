@@ -17,6 +17,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -143,6 +144,26 @@ static espeak_ERROR speak_text(struct synth_t * s)
 	return rc;
 }
 
+static void free_espeak_entry(struct espeak_entry_t *entry)
+{
+	assert(entry);
+	if (entry->cmd == CMD_SPEAK_TEXT)
+		free(entry->buf);
+	free(entry);
+}
+
+static void queue_clear()
+{
+	struct espeak_entry_t *current;
+
+	current = (struct espeak_entry_t *) queue_peek();
+	while (current) {
+		free_espeak_entry(current);
+		queue_remove();
+		current = (struct espeak_entry_t *) queue_peek();
+	}
+}
+
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
@@ -180,29 +201,11 @@ static void queue_process_entry(struct synth_t *s)
 		}
 
 		if (error == EE_OK) {
+			free_espeak_entry(current);
 			pthread_mutex_lock(&queue_guard);
 			queue_remove();
 			pthread_mutex_unlock(&queue_guard);
 		}
-	}
-}
-
-static void free_entry(struct espeak_entry_t *entry)
-{
-	if (entry->cmd == CMD_SPEAK_TEXT)
-		free(entry->buf);
-	free(entry);
-}
-
-static void queue_clear()
-{
-	struct espeak_entry_t *current;
-
-	current = (struct espeak_entry_t *) queue_peek();
-	while (current) {
-		free_entry(current);
-		queue_remove();
-		current = (struct espeak_entry_t *) queue_peek();
 	}
 }
 
