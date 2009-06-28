@@ -70,6 +70,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	int to_write;
 	snd_pcm_state_t state;
 	int user_data_new;
+	int rc = 0;
 
 	lock_audio_mutex();
 	user_data_new = *(int *) events->user_data;
@@ -123,8 +124,9 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 		}
 		lock_audio_mutex();
 	}
+	rc = stop_requested;
 	unlock_audio_mutex();
-	return 0;
+	return rc;
 }
 
 void select_audio_mode(void)
