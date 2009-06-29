@@ -150,15 +150,15 @@ static void free_espeak_entry(struct espeak_entry_t *entry)
 	free(entry);
 }
 
-static void queue_clear()
+static void synth_queue_clear()
 {
 	struct espeak_entry_t *current;
 
-	current = (struct espeak_entry_t *) queue_peek();
+	current = (struct espeak_entry_t *) queue_peek(synth_queue);
 	while (current) {
 		free_espeak_entry(current);
-		queue_remove();
-		current = (struct espeak_entry_t *) queue_peek();
+		queue_remove(synth_queue);
+		current = (struct espeak_entry_t *) queue_peek(synth_queue);
 	}
 }
 
@@ -167,7 +167,7 @@ static void queue_process_entry(struct synth_t *s)
 	espeak_ERROR error;
 	struct espeak_entry_t *current;
 
-	current = (struct espeak_entry_t *) queue_peek();
+	current = (struct espeak_entry_t *) queue_peek(synth_queue);
 	pthread_mutex_unlock(&queue_guard);
 	if (current) {
 		switch (current->cmd) {
@@ -201,7 +201,7 @@ static void queue_process_entry(struct synth_t *s)
 		if (error == EE_OK) {
 			free_espeak_entry(current);
 			pthread_mutex_lock(&queue_guard);
-			queue_remove();
+			queue_remove(synth_queue);
 			pthread_mutex_unlock(&queue_guard);
 		}
 	}
@@ -263,17 +263,17 @@ void *espeak_thread(void *arg)
 	pthread_mutex_lock(&queue_guard);
 	while (should_run) {
 
-		while (should_run && !queue_peek()  && !runner_must_stop)
+		while (should_run && !queue_peek(synth_queue) && !runner_must_stop)
 			pthread_cond_wait(&runner_awake, &queue_guard);
 
 		if (runner_must_stop) {
-			queue_clear();
+			synth_queue_clear();
 			stop_speech();
 			runner_must_stop = 0;
 			pthread_cond_signal(&stop_acknowledged);
 		}
 
-		while (should_run && queue_peek() && !runner_must_stop) {
+		while (should_run && queue_peek(synth_queue) && !runner_must_stop) {
 			queue_process_entry(s);
 			pthread_mutex_lock(&queue_guard);
 		}

@@ -31,48 +31,59 @@ struct queue_entry_t {
 	struct queue_entry_t *next;
 };
 
-static struct queue_entry_t *head = NULL;
-static struct queue_entry_t *tail = NULL;
+struct queue_t {
+	struct queue_entry_t *head, *tail;
+};
 
-void queue_add(void *data)
+struct queue_t *new_queue(void)
 {
-struct queue_entry_t *tmp;
+	struct queue_t *q = malloc(sizeof(struct queue_t));
+	if (q != NULL) {
+		q->head = NULL;
+		q->tail = NULL;
+	}
+	return q;
+}
+
+void queue_add(struct queue_t *q, void *data)
+{
+	struct queue_entry_t *tmp;
 
 	assert(data);
 	tmp = malloc(sizeof(struct queue_entry_t));
-	if (! tmp) {
+	if (!tmp) {
 		printf("Unable to allocate memory for queue entry.\n");
 		return;
 	}
 	tmp->data = data;
 	tmp->next = NULL;
-	if (! tail) {
-		tail = tmp;
+	if (!q->tail) {
+		q->tail = tmp;
 	} else {
-		tail->next = tmp;
-		tail = tail->next;
+		q->tail->next = tmp;
+		q->tail = q->tail->next;
 	}
-	if (!head)
-		head = tmp;
+	if (!q->head)
+		q->head = tmp;
 }
 
-void queue_remove(void)
+void queue_remove(struct queue_t *q)
 {
 	struct queue_entry_t *tmp;
 
-	if (head) {
-		tmp = head;
-		head = tmp->next;
+	if (q->head) {
+		tmp = q->head;
+		q->head = tmp->next;
 		free(tmp);
-		if (!head)
-			tail = head;
+		if (!q->head)
+			q->tail = q->head;
 	}
 }
 
-void *queue_peek(void)
+void *queue_peek(struct queue_t *q)
 {
-	if (head)
-		return head->data;
+	if (q->head)
+		return q->head->data;
 	else
 		return NULL;
 }

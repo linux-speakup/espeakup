@@ -63,12 +63,16 @@ struct synth_t {
 	int len;
 };
 
+struct queue_t;	/* An opaque type. */
+
+extern struct queue_t *synth_queue;
 extern int debug;
 
 extern void process_cli(int argc, char **argv);
-extern void queue_add(void *entry);
-extern void queue_remove(void);
-extern void *queue_peek(void);
+extern struct queue_t *new_queue(void);
+extern void queue_add(struct queue_t *q, void *entry);
+extern void queue_remove(struct queue_t *q);
+extern void *queue_peek(struct queue_t *q);
 extern void *signal_thread(void *arg);
 extern int initialize_espeak(struct synth_t *s);
 extern void *espeak_thread(void *arg);

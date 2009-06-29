@@ -33,6 +33,7 @@ const char *Version = "0.71";
 const char *pidPath = "/var/run/espeakup.pid";
 
 int debug = 0;
+struct queue_t *synth_queue = NULL;
 
 int self_pipe_fds[2];
 volatile int should_run = 1;
@@ -82,6 +83,12 @@ int main(int argc, char **argv)
 	struct synth_t s = {
 		.voice = "",
 	};
+	synth_queue = new_queue();
+
+	if (!synth_queue) {
+		fprintf(stderr, "Unable to allocate memory.\n");
+		return 2;
+	}
 
 	/* process command line options */
 	process_cli(argc, argv);
