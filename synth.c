@@ -129,7 +129,6 @@ static espeak_ERROR stop_speech(void)
 {
 	espeak_ERROR rc;
 
-	stop_audio();
 	rc = espeak_Cancel();
 	start_audio(&user_data);
 	return rc;
