@@ -70,7 +70,7 @@ extern int debug;
 
 extern void process_cli(int argc, char **argv);
 extern struct queue_t *new_queue(void);
-extern void queue_add(struct queue_t *q, void *entry);
+extern int queue_add(struct queue_t *q, void *entry);
 extern void queue_remove(struct queue_t *q);
 extern void *queue_peek(struct queue_t *q);
 extern void *signal_thread(void *arg);

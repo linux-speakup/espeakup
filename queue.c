@@ -45,7 +45,7 @@ struct queue_t *new_queue(void)
 	return q;
 }
 
-void queue_add(struct queue_t *q, void *data)
+int queue_add(struct queue_t *q, void *data)
 {
 	struct queue_entry_t *tmp;
 
@@ -53,7 +53,7 @@ void queue_add(struct queue_t *q, void *data)
 	tmp = malloc(sizeof(struct queue_entry_t));
 	if (!tmp) {
 		printf("Unable to allocate memory for queue entry.\n");
-		return;
+		return 0;
 	}
 	tmp->data = data;
 	tmp->next = NULL;
@@ -65,6 +65,7 @@ void queue_add(struct queue_t *q, void *data)
 	}
 	if (!q->head)
 		q->head = tmp;
+	return 1;
 }
 
 void queue_remove(struct queue_t *q)

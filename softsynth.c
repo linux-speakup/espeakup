@@ -38,6 +38,7 @@ static int softFD = 0;
 static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 {
 	struct espeak_entry_t *entry;
+	int added = 0;
 
 	entry = malloc(sizeof(struct espeak_entry_t));
 	if (!entry) {
@@ -48,7 +49,10 @@ static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 	entry->adjust = adj;
 	entry->value = value;
 	pthread_mutex_lock(&queue_guard);
-	queue_add(synth_queue, (void *) entry);
+	added = queue_add(synth_queue, (void *) entry);
+	if (!added)
+		free(entry);
+	else
 	pthread_cond_signal(&runner_awake);
 	pthread_mutex_unlock(&queue_guard);
 }
@@ -56,6 +60,7 @@ static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 static void queue_add_text(char *txt, size_t length)
 {
 	struct espeak_entry_t *entry;
+	int added = 0;
 
 	entry = malloc(sizeof(struct espeak_entry_t));
 	if (!entry) {
@@ -72,8 +77,14 @@ static void queue_add_text(char *txt, size_t length)
 	}
 	entry->len = length;
 	pthread_mutex_lock(&queue_guard);
-	queue_add(synth_queue, (void *) entry);
-	pthread_cond_signal(&runner_awake);
+	added = queue_add(synth_queue, (void *) entry);
+	if (!added) {
+		free(entry->buf);
+		free(entry);
+	} else {
+		pthread_cond_signal(&runner_awake);
+	}
+
 	pthread_mutex_unlock(&queue_guard);
 }
 
