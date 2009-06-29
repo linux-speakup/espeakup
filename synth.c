@@ -38,7 +38,6 @@ const int rateMultiplier = 34;
 const int rateOffset = 84;
 const int volumeMultiplier = 22;
 
-static int user_data = 0;
 volatile int runner_must_stop = 0;
 
 static espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj)
@@ -130,7 +129,7 @@ static espeak_ERROR stop_speech(void)
 	espeak_ERROR rc;
 
 	rc = espeak_Cancel();
-	start_audio(&user_data);
+	start_audio();
 	return rc;
 }
 
@@ -139,7 +138,7 @@ static espeak_ERROR speak_text(struct synth_t * s)
 	espeak_ERROR rc;
 
 	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL,
-					  &user_data);
+					  NULL);
 	return rc;
 }
 

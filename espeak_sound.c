@@ -15,7 +15,7 @@ void stop_audio(void)
 	return;
 }
 
-void start_audio(int *user_data)
+void start_audio(void)
 {
 	return;
 }

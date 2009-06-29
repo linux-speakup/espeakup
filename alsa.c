@@ -63,42 +63,19 @@ static int minimum(int x, int y)
 
 static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 {
-	static int discarding_packets = 0;
-	static int user_data_old = 0;
 	int samples_written = 0;
 	int avail;
 	int to_write;
 	snd_pcm_state_t state;
-	int user_data_new;
 	int rc = 0;
 
 	lock_audio_mutex();
-	user_data_new = *(int *) events->user_data;
 	if (stop_requested) {
-		if(snd_pcm_drop(handle) < 0) {
-			fprintf(stderr, "Negative return from snd_pcm_drop!\n");
-			return 1;
-		}
-		discarding_packets = 1;
+		unlock_audio_mutex();
+		return 1;
 	}
 	unlock_audio_mutex();
 
-	/*
-	 * If discarding_packets is true, then do the following.
-	 * Compare user_data_old and user_data_new.  If they are equal,
-	 * then espeak is still sending stale data through the callback.
-	 * Keep on discarding it, and return 1.
-	 * If they are different, a new stream has started.  We can stop
-	 * discarding.  Just process the new data.
-	 */
-	if (discarding_packets) {
-		if (user_data_new == user_data_old)
-			return 1;	/* Discard stale data. */
-		else
-			discarding_packets = 0;
-	}
-
-	user_data_old = user_data_new;
 	snd_pcm_status(handle, status);
 	state = snd_pcm_status_get_state(status);
 	if (state != SND_PCM_STATE_RUNNING)
@@ -199,13 +176,14 @@ void stop_audio(void)
 {
 	lock_audio_mutex();
 	stop_requested = 1;
+	if(snd_pcm_drop(handle) < 0)
+		fprintf(stderr, "Negative return from snd_pcm_drop!\n");
 	unlock_audio_mutex();
 }
 
-void start_audio(int *user_data)
+void start_audio(void)
 {
 	lock_audio_mutex();
-	*user_data = (*user_data + 1) % 100;
 	stop_requested = 0;
 	unlock_audio_mutex();
 }
