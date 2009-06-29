@@ -267,8 +267,8 @@ void *espeak_thread(void *arg)
 			pthread_cond_wait(&runner_awake, &queue_guard);
 
 		if (runner_must_stop) {
-			synth_queue_clear();
 			stop_speech();
+			synth_queue_clear();
 			runner_must_stop = 0;
 			pthread_cond_signal(&stop_acknowledged);
 		}
