@@ -268,16 +268,16 @@ void *espeak_thread(void *arg)
 		while (should_run && !queue_peek()  && !runner_must_stop)
 			pthread_cond_wait(&runner_awake, &queue_guard);
 
-		while (should_run && queue_peek() && !runner_must_stop) {
-			queue_process_entry(s);
-			pthread_mutex_lock(&queue_guard);
-		}
-
 		if (runner_must_stop) {
 			queue_clear();
 			stop_speech();
 			runner_must_stop = 0;
 			pthread_cond_signal(&stop_acknowledged);
+		}
+
+		while (should_run && queue_peek() && !runner_must_stop) {
+			queue_process_entry(s);
+			pthread_mutex_lock(&queue_guard);
 		}
 	}
 	pthread_cond_signal(&stop_acknowledged);
