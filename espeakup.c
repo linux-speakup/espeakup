@@ -103,6 +103,12 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* set up the pipe used to wake the espeak thread */
+	if (pipe(self_pipe_fds) < 0) {
+		perror("Unable to create pipe");
+		return 5;
+	}
+
 	/* create the signal processing thread here. */
 	err = pthread_create(&signal_thread_id, NULL, signal_thread, NULL);
 	if (err != 0) {
@@ -126,12 +132,6 @@ int main(int argc, char **argv)
 /* open the softsynth */
 	if (open_softsynth() < 0) {
 		return 2;
-	}
-
-	/* set up the pipe used to wake the espeak thread */
-	if (pipe(self_pipe_fds) < 0) {
-		perror("Unable to create pipe");
-		return 5;
 	}
 
 	/* Spawn our softsynth thread. */
