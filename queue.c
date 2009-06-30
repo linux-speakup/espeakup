@@ -32,13 +32,14 @@ struct queue_entry_t {
 };
 
 struct queue_t {
-	struct queue_entry_t *head, *tail;
+	struct queue_entry_t *head;
+	struct queue_entry_t *tail;
 };
 
 struct queue_t *new_queue(void)
 {
 	struct queue_t *q = malloc(sizeof(struct queue_t));
-	if (q != NULL) {
+	if (q) {
 		q->head = NULL;
 		q->tail = NULL;
 	}
