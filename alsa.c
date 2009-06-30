@@ -178,6 +178,7 @@ void stop_audio(void)
 	stop_requested = 1;
 	if(snd_pcm_drop(handle) < 0)
 		fprintf(stderr, "Negative return from snd_pcm_drop!\n");
+	snd_pcm_prepare(handle);
 	unlock_audio_mutex();
 }
 
