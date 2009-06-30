@@ -52,6 +52,6 @@ softsynth.o: softsynth.c espeakup.h queue.h
 
 synth.o: synth.c espeakup.h queue.h
 
-alsa.o: alsa.c espeakup.h 
+alsa.o: alsa.c espeakup.h
 
-espeak_sound.o: espeak_sound.c espeakup.h 
+espeak_sound.o: espeak_sound.c espeakup.h
