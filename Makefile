@@ -44,14 +44,14 @@ espeakup: $(OBJS)
 
 cli.o: cli.c espeakup.h
 
-espeakup.o: espeakup.c espeakup.h
+espeakup.o: espeakup.c espeakup.h queue.h
 
-queue.o: queue.c espeakup.h
+queue.o: queue.c queue.h
 
-softsynth.o: softsynth.c espeakup.h
+softsynth.o: softsynth.c espeakup.h queue.h
 
-synth.o: synth.c espeakup.h
+synth.o: synth.c espeakup.h queue.h
 
-alsa.o: alsa.c espeakup.h
+alsa.o: alsa.c espeakup.h 
 
-espeak_sound.o: espeak_sound.c espeakup.h
+espeak_sound.o: espeak_sound.c espeakup.h 
