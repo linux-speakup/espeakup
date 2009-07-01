@@ -66,7 +66,6 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	int samples_written = 0;
 	int avail;
 	int to_write;
-	snd_pcm_state_t state;
 	int rc = 0;
 
 	lock_audio_mutex();
@@ -74,21 +73,12 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 		unlock_audio_mutex();
 		return 1;
 	}
-	unlock_audio_mutex();
 
-	snd_pcm_status(handle, status);
-	state = snd_pcm_status_get_state(status);
-	if (state != SND_PCM_STATE_RUNNING)
-		snd_pcm_prepare(handle);
-
-	lock_audio_mutex();
 	while (numsamples > 0 && ! stop_requested) {
-		unlock_audio_mutex();
 		avail = snd_pcm_avail_update(handle);
 		if (avail <= 0) {
 			if (avail < 0)
 				snd_pcm_prepare(handle);
-			lock_audio_mutex();
 			continue;
 		}
 		to_write = minimum(avail, numsamples);
@@ -99,7 +89,6 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 			numsamples -= samples_written;
 			audio += samples_written;
 		}
-		lock_audio_mutex();
 	}
 	rc = stop_requested;
 	unlock_audio_mutex();
