@@ -154,56 +154,54 @@ static void synth_queue_clear()
 {
 	struct espeak_entry_t *current;
 
-	current = (struct espeak_entry_t *) queue_peek(synth_queue);
-	while (current) {
+	while (queue_peek(synth_queue)) {
+		current = (struct espeak_entry_t *) queue_remove(synth_queue);
 		free_espeak_entry(current);
-		queue_remove(synth_queue);
-		current = (struct espeak_entry_t *) queue_peek(synth_queue);
 	}
 }
 
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
-	struct espeak_entry_t *current;
+	static struct espeak_entry_t *current = NULL;
 
-	current = (struct espeak_entry_t *) queue_peek(synth_queue);
-	pthread_mutex_unlock(&queue_guard);
-	if (current) {
-		switch (current->cmd) {
-		case CMD_SET_FREQUENCY:
-			error = set_frequency(s, current->value, current->adjust);
-			break;
-		case CMD_SET_PITCH:
-			error = set_pitch(s, current->value, current->adjust);
-			break;
-		case CMD_SET_PUNCTUATION:
-			error = set_punctuation(s, current->value, current->adjust);
-			break;
-		case CMD_SET_RATE:
-			error = set_rate(s, current->value, current->adjust);
-			break;
-		case CMD_SET_VOICE:
-			error = EE_OK;
-			break;
-		case CMD_SET_VOLUME:
-			error = set_volume(s, current->value, current->adjust);
-			break;
-		case CMD_SPEAK_TEXT:
-			s->buf = current->buf;
-			s->len = current->len;
-			error = speak_text(s);
-			break;
-		default:
-			break;
-		}
-
-		if (error == EE_OK) {
+	if (current != queue_peek(synth_queue)) {
+		if (current)
 			free_espeak_entry(current);
-			pthread_mutex_lock(&queue_guard);
-			queue_remove(synth_queue);
-			pthread_mutex_unlock(&queue_guard);
-		}
+		current = (struct espeak_entry_t *) queue_remove(synth_queue);
+	}
+	pthread_mutex_unlock(&queue_guard);
+	switch (current->cmd) {
+	case CMD_SET_FREQUENCY:
+		error = set_frequency(s, current->value, current->adjust);
+		break;
+	case CMD_SET_PITCH:
+		error = set_pitch(s, current->value, current->adjust);
+		break;
+	case CMD_SET_PUNCTUATION:
+		error = set_punctuation(s, current->value, current->adjust);
+		break;
+	case CMD_SET_RATE:
+		error = set_rate(s, current->value, current->adjust);
+		break;
+	case CMD_SET_VOICE:
+		error = EE_OK;
+		break;
+	case CMD_SET_VOLUME:
+		error = set_volume(s, current->value, current->adjust);
+		break;
+	case CMD_SPEAK_TEXT:
+		s->buf = current->buf;
+		s->len = current->len;
+		error = speak_text(s);
+		break;
+	default:
+		break;
+	}
+
+	if (error == EE_OK) {
+		free_espeak_entry(current);
+		current = NULL;
 	}
 }
 

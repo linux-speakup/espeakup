@@ -69,17 +69,20 @@ int queue_add(struct queue_t *q, void *data)
 	return 1;
 }
 
-void queue_remove(struct queue_t *q)
+void *queue_remove(struct queue_t *q)
 {
+	void *data = NULL;
 	struct queue_entry_t *tmp;
 
 	if (q->head) {
 		tmp = q->head;
+		data = tmp->data;
 		q->head = tmp->next;
 		free(tmp);
 		if (!q->head)
 			q->tail = q->head;
 	}
+	return data;
 }
 
 void *queue_peek(struct queue_t *q)

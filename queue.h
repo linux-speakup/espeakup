@@ -24,7 +24,7 @@ struct queue_t;	/* An opaque type. */
 
 extern struct queue_t *new_queue(void);
 extern int queue_add(struct queue_t *q, void *entry);
-extern void queue_remove(struct queue_t *q);
+extern void *queue_remove(struct queue_t *q);
 extern void *queue_peek(struct queue_t *q);
 
 #endif
