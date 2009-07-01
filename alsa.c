@@ -25,8 +25,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+
 #define ALSA_PCM_NEW_HW_PARAMS_API
+#define ALSA_PCM_NEW_SW_PARAMS_API
 #include <alsa/asoundlib.h>
+#undef ALSA_PCM_NEW_HW_PARAMS_API
+#undef ALSA_PCM_NEW_SW_PARAMS_API
+
 #include "espeakup.h"
 
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
