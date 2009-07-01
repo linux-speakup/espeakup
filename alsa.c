@@ -74,12 +74,12 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 	int rc = 0;
 
 	lock_audio_mutex();
-	if (stop_requested) {
+	if (stop_requested || !should_run) {
 		unlock_audio_mutex();
 		return 1;
 	}
 
-	while (numsamples > 0 && ! stop_requested) {
+	while (numsamples > 0 && (! stop_requested && should_run)) {
 		avail = snd_pcm_avail_update(handle);
 		if (avail <= 0) {
 			if (avail < 0)
@@ -95,7 +95,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 			audio += samples_written;
 		}
 	}
-	rc = stop_requested;
+	rc = (stop_requested || !should_run);
 	unlock_audio_mutex();
 	return rc;
 }
