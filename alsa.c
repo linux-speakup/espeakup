@@ -66,7 +66,8 @@ static int minimum(int x, int y)
 		return y;
 }
 
-static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
+static int alsa_callback(short *audio, int numsamples,
+						 espeak_EVENT * events)
 {
 	int samples_written = 0;
 	int avail;
@@ -79,7 +80,7 @@ static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 		return 1;
 	}
 
-	while (numsamples > 0 && (! stop_requested && should_run)) {
+	while (numsamples > 0 && (!stop_requested && should_run)) {
 		avail = snd_pcm_avail_update(handle);
 		if (avail <= 0) {
 			if (avail < 0)
@@ -170,7 +171,7 @@ void stop_audio(void)
 {
 	lock_audio_mutex();
 	stop_requested = 1;
-	if(snd_pcm_drop(handle) < 0)
+	if (snd_pcm_drop(handle) < 0)
 		fprintf(stderr, "Negative return from snd_pcm_drop!\n");
 	snd_pcm_prepare(handle);
 	unlock_audio_mutex();

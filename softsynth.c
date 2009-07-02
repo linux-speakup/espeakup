@@ -53,7 +53,7 @@ static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 	if (!added)
 		free(entry);
 	else
-	pthread_cond_signal(&runner_awake);
+		pthread_cond_signal(&runner_awake);
 	pthread_mutex_unlock(&queue_guard);
 }
 
@@ -183,8 +183,8 @@ static void request_espeak_stop(void)
 	pthread_mutex_lock(&queue_guard);
 	runner_must_stop = 1;
 	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
-	while(should_run && (runner_must_stop == 1))
-	pthread_cond_wait(&stop_acknowledged, &queue_guard);	/* wait for acknowledgement. */
+	while (should_run && (runner_must_stop == 1))
+		pthread_cond_wait(&stop_acknowledged, &queue_guard);	/* wait for acknowledgement. */
 	pthread_mutex_unlock(&queue_guard);
 }
 

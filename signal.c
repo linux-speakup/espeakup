@@ -37,8 +37,8 @@ static void dummy_handler(int sig)
 void *signal_thread(void *arg)
 {
 	struct sigaction temp;
-		sigset_t sigset;
-		int sig;
+	sigset_t sigset;
+	int sig;
 
 	/* install dummy handlers for the signals we want to process */
 	temp.sa_handler = dummy_handler;
@@ -47,7 +47,7 @@ void *signal_thread(void *arg)
 	sigaction(SIGTERM, &temp, NULL);
 
 	pthread_mutex_lock(&queue_guard);
-	while(should_run) {
+	while (should_run) {
 		pthread_mutex_unlock(&queue_guard);
 		sigfillset(&sigset);
 		sigwait(&sigset, &sig);

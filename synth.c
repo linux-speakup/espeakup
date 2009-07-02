@@ -40,7 +40,8 @@ const int volumeMultiplier = 22;
 
 volatile int runner_must_stop = 0;
 
-static espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj)
+static espeak_ERROR set_frequency(struct synth_t *s, int freq,
+								  enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -54,7 +55,8 @@ static espeak_ERROR set_frequency(struct synth_t *s, int freq, enum adjust_t adj
 	return rc;
 }
 
-static espeak_ERROR set_pitch(struct synth_t * s, int pitch, enum adjust_t adj)
+static espeak_ERROR set_pitch(struct synth_t *s, int pitch,
+							  enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -68,8 +70,8 @@ static espeak_ERROR set_pitch(struct synth_t * s, int pitch, enum adjust_t adj)
 	return rc;
 }
 
-static espeak_ERROR set_punctuation(struct synth_t * s, int punct,
-							 enum adjust_t adj)
+static espeak_ERROR set_punctuation(struct synth_t *s, int punct,
+									enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -83,7 +85,8 @@ static espeak_ERROR set_punctuation(struct synth_t * s, int punct,
 	return rc;
 }
 
-static espeak_ERROR set_rate(struct synth_t * s, int rate, enum adjust_t adj)
+static espeak_ERROR set_rate(struct synth_t *s, int rate,
+							 enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -98,7 +101,7 @@ static espeak_ERROR set_rate(struct synth_t * s, int rate, enum adjust_t adj)
 	return rc;
 }
 
-static espeak_ERROR set_voice(struct synth_t * s, char *voice)
+static espeak_ERROR set_voice(struct synth_t *s, char *voice)
 {
 	espeak_ERROR rc;
 
@@ -108,7 +111,8 @@ static espeak_ERROR set_voice(struct synth_t * s, char *voice)
 	return rc;
 }
 
-static espeak_ERROR set_volume(struct synth_t * s, int vol, enum adjust_t adj)
+static espeak_ERROR set_volume(struct synth_t *s, int vol,
+							   enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -134,7 +138,7 @@ static espeak_ERROR stop_speech(void)
 	return rc;
 }
 
-static espeak_ERROR speak_text(struct synth_t * s)
+static espeak_ERROR speak_text(struct synth_t *s)
 {
 	espeak_ERROR rc;
 
