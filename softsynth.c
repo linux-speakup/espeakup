@@ -181,9 +181,9 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 static void request_espeak_stop(void)
 {
 	pthread_mutex_lock(&queue_guard);
-	runner_must_stop = 1;
+	stop_requested = 1;
 	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
-	while (should_run && (runner_must_stop == 1))
+	while (should_run && stop_requested)
 		pthread_cond_wait(&stop_acknowledged, &queue_guard);	/* wait for acknowledgement. */
 	pthread_mutex_unlock(&queue_guard);
 }

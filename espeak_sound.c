@@ -14,8 +14,3 @@ void stop_audio(void)
 {
 	return;
 }
-
-void start_audio(void)
-{
-	return;
-}

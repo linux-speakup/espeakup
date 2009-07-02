@@ -38,7 +38,7 @@ const int rateMultiplier = 34;
 const int rateOffset = 84;
 const int volumeMultiplier = 22;
 
-volatile int runner_must_stop = 0;
+volatile int stop_requested = 0;
 
 static espeak_ERROR set_frequency(struct synth_t *s, int freq,
 								  enum adjust_t adj)
@@ -134,7 +134,6 @@ static espeak_ERROR stop_speech(void)
 
 	stop_audio();
 	rc = espeak_Cancel();
-	start_audio();
 	return rc;
 }
 
@@ -266,17 +265,17 @@ void *espeak_thread(void *arg)
 	pthread_mutex_lock(&queue_guard);
 	while (should_run) {
 
-		while (should_run && !queue_peek(synth_queue) && !runner_must_stop)
+		while (should_run && !queue_peek(synth_queue) && !stop_requested)
 			pthread_cond_wait(&runner_awake, &queue_guard);
 
-		if (runner_must_stop) {
+		if (stop_requested) {
 			stop_speech();
 			synth_queue_clear();
-			runner_must_stop = 0;
+			stop_requested = 0;
 			pthread_cond_signal(&stop_acknowledged);
 		}
 
-		while (should_run && queue_peek(synth_queue) && !runner_must_stop) {
+		while (should_run && queue_peek(synth_queue) && !stop_requested) {
 			queue_process_entry(s);
 			pthread_mutex_lock(&queue_guard);
 		}

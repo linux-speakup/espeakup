@@ -78,9 +78,8 @@ extern void *softsynth_thread(void *arg);
 extern void select_audio_mode(void);
 extern int init_audio(unsigned int rate);
 extern void stop_audio(void);
-extern void start_audio(void);
 extern volatile int should_run;
-extern volatile int runner_must_stop;
+extern volatile int stop_requested;
 extern int self_pipe_fds[2];
 #define PIPE_READ_FD (self_pipe_fds[0])
 #define PIPE_WRITE_FD (self_pipe_fds[1])

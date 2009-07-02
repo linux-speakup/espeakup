@@ -35,7 +35,6 @@
 #include "espeakup.h"
 
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
-static volatile int stop_requested = 0;
 
 static snd_pcm_t *handle;
 static snd_pcm_hw_params_t *params;
@@ -170,16 +169,8 @@ int init_audio(unsigned int rate)
 void stop_audio(void)
 {
 	lock_audio_mutex();
-	stop_requested = 1;
 	if (snd_pcm_drop(handle) < 0)
 		fprintf(stderr, "Negative return from snd_pcm_drop!\n");
 	snd_pcm_prepare(handle);
-	unlock_audio_mutex();
-}
-
-void start_audio(void)
-{
-	lock_audio_mutex();
-	stop_requested = 0;
 	unlock_audio_mutex();
 }
