@@ -11,11 +11,11 @@ ALSA_SRCS = alsa.c
 ESPEAK_SRCS = espeak_sound.c
 SRCS = \
 	cli.c \
+	espeak.c \
 	espeakup.c  \
 	queue.c \
 	signal.c \
-		softsynth.c \
-	synth.c
+		softsynth.c
 
 ifeq ($(AUDIO),alsa)
 SRCS += $(ALSA_SRCS)
@@ -44,13 +44,13 @@ espeakup: $(OBJS)
 
 cli.o: cli.c espeakup.h
 
+espeak.o: espeak.c espeakup.h queue.h
+
 espeakup.o: espeakup.c espeakup.h queue.h
 
 queue.o: queue.c queue.h
 
 softsynth.o: softsynth.c espeakup.h queue.h
-
-synth.o: synth.c espeakup.h queue.h
 
 alsa.o: alsa.c espeakup.h
 
