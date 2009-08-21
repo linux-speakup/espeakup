@@ -38,7 +38,7 @@ static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static snd_pcm_t *handle;
 static snd_pcm_hw_params_t *params;
-snd_pcm_status_t *status;
+static snd_pcm_status_t *status;
 static int dir = 0;
 
 static void lock_audio_mutex(void)
