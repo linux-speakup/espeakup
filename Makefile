@@ -1,7 +1,7 @@
 CFLAGS += -Wall
 LDLIBS = -lespeak
 
-PREFIX = /usr
+PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man/man8
 BINDIR = $(PREFIX)/bin
 
