@@ -8,7 +8,7 @@ BINDIR = $(PREFIX)/bin
 INSTALL = install
 
 ALSA_SRCS = alsa.c
-ESPEAK_SRCS = espeak_sound.c
+PORTAUDIO_SRCS = portaudio.c
 SRCS = \
 	cli.c \
 	espeak.c \
@@ -21,7 +21,7 @@ ifeq ($(AUDIO),alsa)
 SRCS += $(ALSA_SRCS)
 LDLIBS += -lasound
 else
-SRCS += $(ESPEAK_SRCS)
+SRCS += $(PORTAUDIO_SRCS)
 endif
 
 OBJS = $(SRCS:.c=.o)
@@ -54,4 +54,4 @@ softsynth.o: softsynth.c espeakup.h queue.h
 
 alsa.o: alsa.c espeakup.h
 
-espeak_sound.o: espeak_sound.c espeakup.h
+portaudio.o: portaudio.c espeakup.h
