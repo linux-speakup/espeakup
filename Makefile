@@ -1,11 +1,8 @@
-CFLAGS += -Wall
-LDLIBS = -lespeak
+INSTALL = install
 
 PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man/man8
 BINDIR = $(PREFIX)/bin
-
-INSTALL = install
 
 ALSA_SRCS = alsa.c
 PORTAUDIO_SRCS = portaudio.c
@@ -19,12 +16,14 @@ SRCS = \
 
 ifeq ($(AUDIO),alsa)
 SRCS += $(ALSA_SRCS)
-LDLIBS += -lasound
+SOUNDLIB = -lasound
 else
 SRCS += $(PORTAUDIO_SRCS)
 endif
 
 OBJS = $(SRCS:.c=.o)
+
+LDLIBS = -lespeak $(SOUNDLIB)
 
 all: espeakup
 
@@ -42,16 +41,20 @@ distclean: clean
 
 espeakup: $(OBJS)
 
+%.o: %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -Wall -c $<
+
+alsa.o: alsa.c espeakup.h
+
 cli.o: cli.c espeakup.h
 
 espeak.o: espeak.c espeakup.h queue.h
 
 espeakup.o: espeakup.c espeakup.h queue.h
 
+portaudio.o: portaudio.c espeakup.h
+
 queue.o: queue.c queue.h
 
 softsynth.o: softsynth.c espeakup.h queue.h
 
-alsa.o: alsa.c espeakup.h
-
-portaudio.o: portaudio.c espeakup.h
