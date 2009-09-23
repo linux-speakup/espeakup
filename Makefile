@@ -4,9 +4,14 @@ PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man/man8
 BINDIR = $(PREFIX)/bin
 
-ALSA_SRCS = alsa.c
-PORTAUDIO_SRCS = portaudio.c
-SRCS = \
+ifndef AUDIO
+	AUDIO=portaudio
+endif
+
+alsa_SRCS = alsa.c
+portaudio_SRCS = portaudio.c
+
+SRCS = $($(AUDIO)_SRCS) \
 	cli.c \
 	espeak.c \
 	espeakup.c  \
@@ -15,10 +20,7 @@ SRCS = \
 		softsynth.c
 
 ifeq ($(AUDIO),alsa)
-SRCS += $(ALSA_SRCS)
 SOUNDLIB = -lasound
-else
-SRCS += $(PORTAUDIO_SRCS)
 endif
 
 OBJS = $(SRCS:.c=.o)
@@ -34,7 +36,7 @@ install: espeakup
 	$(INSTALL) -m 0644 espeakup.8 $(DESTDIR)$(MANDIR)
 
 clean:
-	$(RM) *.o
+	$(RM) *.d *.o
 
 distclean: clean
 	$(RM) espeakup
@@ -42,19 +44,6 @@ distclean: clean
 espeakup: $(OBJS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -Wall -c $<
+	$(COMPILE.c) -MMD -Wall $(OUTPUT_OPTION) $<
 
-alsa.o: alsa.c espeakup.h
-
-cli.o: cli.c espeakup.h
-
-espeak.o: espeak.c espeakup.h queue.h
-
-espeakup.o: espeakup.c espeakup.h queue.h
-
-portaudio.o: portaudio.c espeakup.h
-
-queue.o: queue.c queue.h
-
-softsynth.o: softsynth.c espeakup.h queue.h
-
+-include $(SRCS:.c=.d)
