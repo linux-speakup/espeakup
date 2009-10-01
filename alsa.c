@@ -57,20 +57,10 @@ static int sound_error(int err, const char *msg)
 	return err;
 }
 
-static int minimum(int x, int y)
-{
-	if (x <= y)
-		return x;
-	else
-		return y;
-}
-
 static int alsa_callback(short *audio, int numsamples,
 						 espeak_EVENT * events)
 {
-	int samples_written = 0;
-	int avail;
-	int to_write;
+	int written = 0;
 	int rc = 0;
 
 	lock_audio_mutex();
@@ -80,20 +70,17 @@ static int alsa_callback(short *audio, int numsamples,
 	}
 
 	while (numsamples > 0 && (!stop_requested && should_run)) {
-		avail = snd_pcm_avail_update(handle);
-		if (avail <= 0) {
-			if (avail < 0)
-				snd_pcm_prepare(handle);
-			continue;
+		written = snd_pcm_writei(handle, audio, numsamples);
+		if (written < 0)
+			written = snd_pcm_recover(handle, written, 0);
+		if (written < 0) {
+			fprintf(stderr, "snd_pcm_writei failed: %s\n", snd_strerror(written));
+			break;
 		}
-		to_write = minimum(avail, numsamples);
-		samples_written = snd_pcm_writei(handle, audio, to_write);
-		if (samples_written < 0) {
-			snd_pcm_prepare(handle);
-		} else {
-			numsamples -= samples_written;
-			audio += samples_written;
-		}
+		if (written > 0 && written < numsamples)
+			printf("Short write (expected %i, wrote %i)\n", numsamples, written);
+		numsamples -= written;
+		audio += written;
 	}
 	rc = (stop_requested || !should_run);
 	unlock_audio_mutex();
