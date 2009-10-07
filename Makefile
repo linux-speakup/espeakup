@@ -1,12 +1,10 @@
-INSTALL = install
+INSTALL ?= install
 
-PREFIX = /usr/local
-MANDIR = $(PREFIX)/share/man/man8
-BINDIR = $(PREFIX)/bin
+PREFIX ?= /usr/local
+MANDIR ?= $(PREFIX)/share/man/man8
+BINDIR ?= $(PREFIX)/bin
 
-ifndef AUDIO
-	AUDIO=portaudio
-endif
+AUDIO ?= portaudio
 
 alsa_SRCS = alsa.c
 portaudio_SRCS = portaudio.c
