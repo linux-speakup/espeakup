@@ -29,9 +29,9 @@ all: espeakup
 
 install: espeakup
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 $< $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(MANDIR)
-	$(INSTALL) -m 0644 espeakup.8 $(DESTDIR)$(MANDIR)
+	$(INSTALL) $< $(DESTDIR)$(BINDIR)
+	$(INSTALL) espeakup.8 $(DESTDIR)$(MANDIR)
 
 clean:
 	$(RM) *.d *.o
