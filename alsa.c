@@ -25,21 +25,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-
-#define ALSA_PCM_NEW_HW_PARAMS_API
-#define ALSA_PCM_NEW_SW_PARAMS_API
 #include <alsa/asoundlib.h>
-#undef ALSA_PCM_NEW_HW_PARAMS_API
-#undef ALSA_PCM_NEW_SW_PARAMS_API
 
 #include "espeakup.h"
 
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static snd_pcm_t *handle;
-static snd_pcm_hw_params_t *params;
-static snd_pcm_status_t *status;
-static int dir = 0;
 
 static void lock_audio_mutex(void)
 {
@@ -51,16 +43,9 @@ static void unlock_audio_mutex(void)
 	pthread_mutex_unlock(&audio_mutex);
 }
 
-static int sound_error(int err, const char *msg)
+static int alsa_callback(short *audio, int numsamples, espeak_EVENT * events)
 {
-	fprintf(stderr, "%s: %s\n", msg, snd_strerror(err));
-	return err;
-}
-
-static int alsa_callback(short *audio, int numsamples,
-						 espeak_EVENT * events)
-{
-	int written = 0;
+	int frames = 0;
 	int rc = 0;
 
 	lock_audio_mutex();
@@ -70,17 +55,17 @@ static int alsa_callback(short *audio, int numsamples,
 	}
 
 	while (numsamples > 0 && (!stop_requested && should_run)) {
-		written = snd_pcm_writei(handle, audio, numsamples);
-		if (written < 0)
-			written = snd_pcm_recover(handle, written, 0);
-		if (written < 0) {
-			fprintf(stderr, "snd_pcm_writei failed: %s\n", snd_strerror(written));
+		frames = snd_pcm_writei(handle, audio, numsamples);
+		if (frames < 0)
+			frames = snd_pcm_recover(handle, frames, !debug);
+		if (frames < 0) {
+			fprintf(stderr, "snd_pcm_writei failed: %s\n", snd_strerror(frames));
 			break;
 		}
-		if (written > 0 && written < numsamples)
-			printf("Short write (expected %i, wrote %i)\n", numsamples, written);
-		numsamples -= written;
-		audio += written;
+		if (frames > 0 && frames < numsamples && debug)
+			fprintf(stderr, "Short write (expected %i, wrote %i)\n", numsamples, frames);
+		numsamples -= frames;
+		audio += frames;
 	}
 	rc = (stop_requested || !should_run);
 	unlock_audio_mutex();
@@ -94,60 +79,27 @@ void select_audio_mode(void)
 
 int init_audio(unsigned int rate)
 {
-	int rc;
+	int err;
 
 	/* Open PCM device for playback. */
-	rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
-	if (rc < 0)
-		return sound_error(rc, "unable to open pcm device");
+	err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
+	if (err < 0) {
+		fprintf(stderr, "Playback open error: %s\n", snd_strerror(err));
+		return err;
+	}
 
-	/* Allocate a hardware parameters object. */
-	rc = snd_pcm_hw_params_malloc(&params);
-	if (rc < 0)
-		return sound_error(rc,
-						   "Unable to allocate memory to store audio parameters");
-
-	rc = snd_pcm_status_malloc(&status);
-	if (rc < 0)
-		return sound_error(rc,
-						   "Unable to allocate memory to store PCM status");
-
-	/* Fill it in with default values. */
-	rc = snd_pcm_hw_params_any(handle, params);
-
-	if (rc < 0)
-		return sound_error(rc,
-						   "Unable to establish defaults for hardware parameters.");
-
-	/* Set the desired hardware parameters. */
-
-	/* Interleaved mode */
-	rc = snd_pcm_hw_params_set_access(handle, params,
-									  SND_PCM_ACCESS_RW_INTERLEAVED);
-
-	if (rc < 0)
-		return sound_error(rc, "Error selecting interleaved mode.");
-
-	/* Signed 16-bit little-endian format */
-	rc = snd_pcm_hw_params_set_format(handle, params,
-									  SND_PCM_FORMAT_S16_LE);
-	if (rc < 0)
-		return sound_error(rc, "Unable to select signed 16-bit samples");
-
-	/* One channel  */
-	rc = snd_pcm_hw_params_set_channels(handle, params, 1);
-
-	if (rc < 0)
-		return sound_error(rc, "Unable to use mono output.");
-
-	rc = snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir);
-	if (rc < 0)
-		return sound_error(rc, "Unable to set sample rate");
-
-	/* Write the parameters to the driver */
-	rc = snd_pcm_hw_params(handle, params);
-	if (rc < 0)
-		return sound_error(rc, "unable to set hw parameters");
+	/* Set parameters. */
+	err = snd_pcm_set_params(handle,
+		SND_PCM_FORMAT_S16_LE,
+		SND_PCM_ACCESS_RW_INTERLEAVED,
+		1,
+		rate,
+		1,
+		0);
+	if (err < 0) {
+		fprintf(stderr, "Playback open error: %s\n", snd_strerror(err));
+		return err;
+	}
 
 	espeak_SetSynthCallback(alsa_callback);
 	return 0;
