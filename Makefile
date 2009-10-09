@@ -30,8 +30,8 @@ all: espeakup
 install: espeakup
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man8
-	$(INSTALL) $< $(DESTDIR)$(BINDIR)
-	$(INSTALL) espeakup.8 $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -m 755 $< $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 644 espeakup.8 $(DESTDIR)$(MANDIR)/man8
 
 clean:
 	$(RM) *.d *.o
