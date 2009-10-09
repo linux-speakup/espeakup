@@ -1,8 +1,8 @@
 INSTALL ?= install
 
 PREFIX ?= /usr/local
-MANDIR ?= $(PREFIX)/share/man/man8
 BINDIR ?= $(PREFIX)/bin
+MANDIR ?= $(PREFIX)/share/man
 
 AUDIO ?= portaudio
 
@@ -29,9 +29,9 @@ all: espeakup
 
 install: espeakup
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
-	$(INSTALL) -d $(DESTDIR)$(MANDIR)
+	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man8
 	$(INSTALL) $< $(DESTDIR)$(BINDIR)
-	$(INSTALL) espeakup.8 $(DESTDIR)$(MANDIR)
+	$(INSTALL) espeakup.8 $(DESTDIR)$(MANDIR)/man8
 
 clean:
 	$(RM) *.d *.o
