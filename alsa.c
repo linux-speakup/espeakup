@@ -34,7 +34,7 @@ static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
 static snd_pcm_t *handle;
 static const unsigned int channels = 1;
 static const int soft_resample = 1;
-static const unsigned int latency = 125000;
+static const unsigned int latency = 25000;
 
 static void lock_audio_mutex(void)
 {
