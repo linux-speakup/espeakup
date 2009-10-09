@@ -32,6 +32,9 @@
 static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static snd_pcm_t *handle;
+static const unsigned int channels = 1;
+static const int soft_resample = 1;
+static const unsigned int latency = 125000;
 
 static void lock_audio_mutex(void)
 {
@@ -92,10 +95,10 @@ int init_audio(unsigned int rate)
 	err = snd_pcm_set_params(handle,
 		SND_PCM_FORMAT_S16_LE,
 		SND_PCM_ACCESS_RW_INTERLEAVED,
-		1,
+		channels,
 		rate,
-		1,
-		0);
+		soft_resample,
+		latency);
 	if (err < 0) {
 		fprintf(stderr, "Playback open error: %s\n", snd_strerror(err));
 		return err;
