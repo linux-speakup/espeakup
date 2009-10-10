@@ -16,13 +16,13 @@ SRCS = $($(AUDIO)_SRCS) \
 	queue.c \
 	signal.c \
 		softsynth.c
+OBJS = $(SRCS:.c=.o)
 
+DEPFLAGS = -MMD
+WARNFLAGS = -Wall
 ifeq ($(AUDIO),alsa)
 SOUNDLIB = -lasound
 endif
-
-OBJS = $(SRCS:.c=.o)
-
 LDLIBS = -lespeak $(SOUNDLIB)
 
 all: espeakup
@@ -33,15 +33,15 @@ install: espeakup
 	$(INSTALL) -m 755 $< $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 644 espeakup.8 $(DESTDIR)$(MANDIR)/man8
 
+espeakup: $(OBJS)
+
 clean:
 	$(RM) *.d *.o
 
 distclean: clean
 	$(RM) espeakup
 
-espeakup: $(OBJS)
-
 %.o: %.c
-	$(COMPILE.c) -MMD -Wall $(OUTPUT_OPTION) $<
+	$(COMPILE.c) $(DEPFLAGS) $(WARNFLAGS) $(OUTPUT_OPTION) $<
 
 -include $(SRCS:.c=.d)
