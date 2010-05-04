@@ -22,6 +22,10 @@
  * Description: Produce audio by calling the ALSA library directly.
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

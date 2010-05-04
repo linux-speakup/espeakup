@@ -17,6 +17,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -25,9 +29,6 @@
 #include <unistd.h>
 
 #include "espeakup.h"
-
-/* program version */
-const char *Version = "0.71";
 
 /* path to our pid file */
 const char *pidPath = "/var/run/espeakup.pid";

@@ -17,15 +17,16 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "espeakup.h"
-
-/* program version */
-extern const char *Version;
 
 /* default voice */
 extern char *defaultVoice;
@@ -53,10 +54,11 @@ static void show_help()
 
 static void show_version(void)
 {
-	printf("espeakup %s\n", Version);
+	printf("%s\n", PACKAGE_STRING);
 	printf("Copyright (C) 2008 William Hubbs\n");
 	printf("License GPLv3+: GNU GPL version 3 or later\n");
 	printf("You are free to change and redistribute this software.\n");
+	printf("Please report bugs to %s\n", PACKAGE_BUGREPORT);
 	exit(0);
 }
 
