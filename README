@@ -21,20 +21,26 @@ The preferred way to install espeakup is using your distribution's
 packaging system, but if your distribution does not have a package for
 espeakup yet, here are some basic instructions.
 
-To install espeakup, first cd into the directory where you
-unpacked the tarball, then issue make to compile the program.  Once this
-is done, as root, issue make install.  This will install espeakup in /usr/bin.
+Espeakup uses an autotools build system, so installation should be very
+straight forward.
+
+If you are installing from git, you must have at least automake 1.11.1
+and autoconf 2.65 installed.  Then, change to the repository directory
+and type:
+
+autoreconf -i
+
+If this runs successfully, you will have a configure script, so run it
+then run make.  If that completes successfully, run make install.
 
 ALSA SUPPORT
 ============
 
-Direct support for alsa was just contributed to this project; I would
-like to thank Chris Brannon for his work on this.  Currently,, it is in
-the early stages, so if you have any suggestions or patches, I am
-definitely interested.
+Chris Brannon contributed the alsa support to this project, and I would
+like to thank him for his work on it.
 
-To build with alsa support, add "AUDIO=alsa" to the make command when you
-compile the program.
+To build with alsa support, add --with-alsa to the command line when you
+run the configure script.
 
 Starting Up
 ===========
