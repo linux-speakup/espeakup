@@ -63,14 +63,15 @@ Espeakup currently accepts the following command line options:
 Getting the Latest Version
 ==========================
 
-Currently, a tarball of the latest official release will be included in
-the contrib/ directory of the speakup repository.  Also, it is possible
-to download a tarball of any released version from github as follows:
+It is possible to download a tarball from github of any released version
+as follows:
 
 wget http://www.github.com/williamh/espeakup/tarball/vx.y
 
-Also, the clone URL, if you are familiar with using git is
-git://github.com/williamh/espeakup.git.
+If you need a tarball for packaging purposes, one is available from
+ftp://ftp.linux-speakup.org/pub/linux/goodies/espeakup-x.y.tar.bz2.
+
+The url for the git repository is git://github.com/williamh/espeakup.git.
 
 Acknowledgements
 ================
