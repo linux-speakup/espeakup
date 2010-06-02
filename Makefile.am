@@ -7,4 +7,8 @@ else
 espeakup_SOURCES += portaudio.c
 endif
 
+if STANDALONE
+espeakup_LDFLAGS = -all-static
+endif
+
 dist_man8_MANS = espeakup.8
