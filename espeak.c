@@ -136,7 +136,6 @@ static espeak_ERROR stop_speech(void)
 {
 	espeak_ERROR rc;
 
-	stop_audio();
 	rc = espeak_Cancel();
 	return rc;
 }
@@ -218,14 +217,9 @@ int initialize_espeak(struct synth_t *s)
 	int rate;
 
 	/* initialize espeak */
-	select_audio_mode();
-	rate = espeak_Initialize(audio_mode, 50, NULL, 0);
+	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 50, NULL, 0);
 	if (rate < 0) {
 		fprintf(stderr, "Unable to initialize espeak.\n");
-		return -1;
-	}
-
-	if (init_audio((unsigned int) rate) < 0) {
 		return -1;
 	}
 

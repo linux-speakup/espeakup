@@ -15,12 +15,6 @@ AC_ARG_ENABLE([standalone],
 	[enable_standalone=no])
 AM_CONDITIONAL([STANDALONE], [test x$enable_standalone = xyes])
 
-AC_ARG_WITH([alsa],
-	[AS_HELP_STRING([--with-alsa],[build with ALSA support])],
-	[],
-	[with_alsa=no])
-AM_CONDITIONAL([ALSA], [test x$with_alsa = xyes])
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL

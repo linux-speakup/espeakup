@@ -33,15 +33,6 @@ autoreconf -i
 If this runs successfully, you will have a configure script, so run it
 then run make.  If that completes successfully, run make install.
 
-ALSA SUPPORT
-============
-
-Chris Brannon contributed the alsa support to this project, and I would
-like to thank him for his work on it.
-
-To build with alsa support, add --with-alsa to the command line when you
-run the configure script.
-
 Starting Up
 ===========
 
