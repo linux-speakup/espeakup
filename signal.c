@@ -25,6 +25,9 @@
 
 #include "espeakup.h"
 
+/* A struct sigaction with all values set to zero. */
+static struct sigaction OUR_SIGACTION_INITIALIZER;
+
 /*
  * We install a dummy signal handler to let the o/s know that we
  * do not want the default action to be performed since we are
@@ -36,7 +39,7 @@ static void dummy_handler(int sig)
 
 void *signal_thread(void *arg)
 {
-	struct sigaction temp;
+	struct sigaction temp = OUR_SIGACTION_INITIALIZER;
 	sigset_t sigset;
 	int sig;
 
