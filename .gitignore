@@ -1,14 +1,4 @@
-.deps
-aclocal.m4
-autom4te.cache
-config.*
-configure
-depcomp
 espeakup
-install-sh
-Makefile
-Makefile.in
-missing
-stamp-h1
+*.d
 *.o
 *.swp

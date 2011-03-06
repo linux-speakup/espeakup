@@ -17,10 +17,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,7 +50,7 @@ static void show_help()
 
 static void show_version(void)
 {
-	printf("%s\n", PACKAGE_STRING);
+	printf("ESpeakup %s\n", PACKAGE_VERSION);
 	printf("Copyright (C) 2008 William Hubbs\n");
 	printf("License GPLv3+: GNU GPL version 3 or later\n");
 	printf("You are free to change and redistribute this software.\n");

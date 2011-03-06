@@ -28,6 +28,9 @@
 
 #include "queue.h"
 
+#define PACKAGE_VERSION "0.80-dev"
+#define PACKAGE_BUGREPORT "http://github.com/williamh/espeakup/issues"
+
 enum command_t {
 	CMD_SET_FREQUENCY,
 	CMD_SET_PITCH,
