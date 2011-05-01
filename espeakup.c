@@ -30,6 +30,7 @@
 char *pidPath = "/var/run/espeakup.pid";
 
 int debug = 0;
+enum espeakup_mode_t espeakup_mode = ESPEAKUP_MODE_SPEAKUP;
 struct queue_t *synth_queue = NULL;
 
 int self_pipe_fds[2];
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
 /*
  * If we are not in debug mode, become a daemon and store the pid.
  */
-	if (!debug) {
+	if (espeakup_mode != ESPEAKUP_MODE_ACSINT && !debug) {
 		daemon(0, 1);
 		if (create_pid_file() < 0) {
 			perror("Unable to create pid file");

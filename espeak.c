@@ -40,6 +40,21 @@ const int volumeMultiplier = 22;
 
 volatile int stop_requested = 0;
 
+static int acsint_callback(short *wav, int numsamples, espeak_EVENT * events)
+{
+	int i;
+	for (i = 0; events[i].type !=  espeakEVENT_LIST_TERMINATED; i++) {
+		if (events[i].type == espeakEVENT_MARK) {
+			int mark = atoi(events[i].id.name);
+			if ((mark < 0) || (mark > 255))
+				continue;
+			putchar(mark);
+			fflush(stdout);
+		}
+	}
+	return 0;
+}
+
 static espeak_ERROR set_frequency(struct synth_t *s, int freq,
 								  enum adjust_t adj)
 {
@@ -139,9 +154,13 @@ static espeak_ERROR stop_speech(void)
 static espeak_ERROR speak_text(struct synth_t *s)
 {
 	espeak_ERROR rc;
+	int synth_mode = 0;
 
-	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, 0, NULL,
-					  NULL);
+	if (espeakup_mode == ESPEAKUP_MODE_ACSINT)
+		synth_mode |= espeakSSML;
+
+	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, synth_mode,
+					  NULL, NULL);
 	return rc;
 }
 
@@ -218,6 +237,10 @@ int initialize_espeak(struct synth_t *s)
 		fprintf(stderr, "Unable to initialize espeak.\n");
 		return -1;
 	}
+
+	/* We need a callback in acsint mode, but not in speakup mode. */
+	if (espeakup_mode == ESPEAKUP_MODE_ACSINT)
+		espeak_SetSynthCallback(acsint_callback);
 
 	/* Setup initial voice parameters */
 	if (defaultVoice) {

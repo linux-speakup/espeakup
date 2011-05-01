@@ -31,10 +31,11 @@ extern char *pidPath;
 extern char *defaultVoice;
 
 /* command line options */
-const char *shortOptions = "P:V:dhv";
+const char *shortOptions = "P:V:adhv";
 const struct option longOptions[] = {
 	{"pid-path", required_argument, NULL, 'P'},
 	{"default-voice", required_argument, NULL, 'V'},
+	{"acsint", no_argument, NULL, 'a'},
 	{"debug", no_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
 	{"version", no_argument, NULL, 'v'},
@@ -78,6 +79,9 @@ void process_cli(int argc, char **argv)
 			break;
 		case 'V':
 			defaultVoice = strdup(optarg);
+			break;
+		case 'a':
+			espeakup_mode = ESPEAKUP_MODE_ACSINT;
 			break;
 		case 'd':
 			debug = 1;

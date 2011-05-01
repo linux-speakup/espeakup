@@ -28,12 +28,102 @@
 #include "espeakup.h"
 
 /* max buffer size */
-static const size_t maxBufferSize = 1025;
+/* A big fat buffer. */
+static const size_t maxBufferSize = 16 * 1024 + 1;
 
 /* synth flush character */
 static const int synthFlushChar = 0x18;
 
+
 static int softFD = 0;
+
+/* Text accumulator: */
+char *textAccumulator;
+int textAccumulator_l;
+
+/* String routines, borrowed from edbrowse: */
+char *EMPTYSTRING = "";
+
+void *allocMem(size_t n)
+{
+	void *s;
+	if (!n)
+		return EMPTYSTRING;
+	if (!(s = malloc(n))) {
+		fprintf(stderr, "Out of memory!\n");
+		exit(1);
+	}
+	return s;
+}								/* allocMem */
+
+void *reallocMem(void *p, size_t n)
+{
+	void *s;
+	if (!n) {
+		fprintf(stderr, "Trying to reallocate memory with size of 0.\n");
+		exit(1);
+	}
+	if (!p) {
+		fprintf(stderr, "realloc called with a NULL pointer!\n");
+		exit(1);
+	}
+	if (p == EMPTYSTRING)
+		return allocMem(n);
+	if (!(s = realloc(p, n))) {
+		fprintf(stderr, "Failed to allocate memory.\n");
+		exit(1);
+	}
+	return s;
+}								/* reallocMem */
+
+char *initString(int *l)
+{
+	*l = 0;
+	return EMPTYSTRING;
+}
+
+void stringAndString(char **s, int *l, const char *t)
+{
+	char *p = *s;
+	int oldlen, newlen, x;
+	oldlen = *l;
+	newlen = oldlen + strlen(t);
+	*l = newlen;
+	++newlen;					/* room for the 0 */
+	x = oldlen ^ newlen;
+	if (x > oldlen) {			/* must realloc */
+		newlen |= (newlen >> 1);
+		newlen |= (newlen >> 2);
+		newlen |= (newlen >> 4);
+		newlen |= (newlen >> 8);
+		newlen |= (newlen >> 16);
+		p = reallocMem(p, newlen);
+		*s = p;
+	}
+	strcpy(p + oldlen, t);
+}								/* stringAndString */
+
+void stringAndBytes(char **s, int *l, const char *t, int cnt)
+{
+	char *p = *s;
+	int oldlen, newlen, x;
+	oldlen = *l;
+	newlen = oldlen + cnt;
+	*l = newlen;
+	++newlen;
+	x = oldlen ^ newlen;
+	if (x > oldlen) {			/* must realloc */
+		newlen |= (newlen >> 1);
+		newlen |= (newlen >> 2);
+		newlen |= (newlen >> 4);
+		newlen |= (newlen >> 8);
+		newlen |= (newlen >> 16);
+		p = reallocMem(p, newlen);
+		*s = p;
+	}
+	memcpy(p + oldlen, t, cnt);
+	p[oldlen + cnt] = 0;
+}								/* stringAndBytes */
 
 static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 {
@@ -147,8 +237,15 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		break;
 	}
 
-	if (cmd != CMD_FLUSH && cmd != CMD_UNKNOWN)
+	if (cmd != CMD_FLUSH && cmd != CMD_UNKNOWN) {
+		if (espeakup_mode == ESPEAKUP_MODE_ACSINT
+			&& textAccumulator_l != 0) {
+			queue_add_text(textAccumulator, textAccumulator_l);
+			free(textAccumulator);
+			textAccumulator = initString(&textAccumulator_l);
+		}
 		queue_add_cmd(cmd, adj, value);
+	}
 
 	return cp - (buf + start);
 }
@@ -178,6 +275,38 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
+static void process_buffer_acsint(struct synth_t *s, char *buf,
+								  ssize_t length)
+{
+	int start = 0;
+	int i;
+	int flushIt = 0;
+
+	while (start < length) {
+		for (i = start; i < length; i++) {
+			if (buf[i] == '\r' || buf[i] == '\n')
+				flushIt = 1;
+			if (buf[i] >= 0 && buf[i] < ' ')
+				break;
+		}
+		if (i > start)
+			stringAndBytes(&textAccumulator, &textAccumulator_l,
+						   buf + start, i - start);
+		if (flushIt) {
+			if (textAccumulator != EMPTYSTRING) {
+				queue_add_text(textAccumulator, textAccumulator_l);
+				free(textAccumulator);
+				textAccumulator = initString(&textAccumulator_l);
+			}
+			flushIt = 0;
+		}
+		if (i < length)
+			start = i = i + process_command(s, buf, i);
+		else
+			start = length;
+	}
+}
+
 static void request_espeak_stop(void)
 {
 	pthread_mutex_lock(&queue_guard);
@@ -191,6 +320,12 @@ static void request_espeak_stop(void)
 int open_softsynth(void)
 {
 	int rc = 0;
+	/* If we're in acsint mode, we read from stdin.  No need to open. */
+	if (espeakup_mode == ESPEAKUP_MODE_ACSINT) {
+		softFD = STDIN_FILENO;
+		return 0;
+	}
+
 	/* open the softsynth. */
 	softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0) {
@@ -215,6 +350,8 @@ void *softsynth_thread(void *arg)
 	char *cp;
 	int terminalFD = PIPE_READ_FD;
 	int greatestFD;
+
+	textAccumulator = initString(&textAccumulator_l);
 
 	if (terminalFD > softFD)
 		greatestFD = terminalFD;
@@ -264,7 +401,10 @@ void *softsynth_thread(void *arg)
 			memmove(buf, cp + 1, strlen(cp + 1) + 1);
 			length = strlen(buf);
 		}
-		process_buffer(s, buf, length);
+		if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP)
+			process_buffer(s, buf, length);
+		else
+			process_buffer_acsint(s, buf, length);
 		pthread_mutex_lock(&queue_guard);
 	}
 	pthread_cond_signal(&runner_awake);

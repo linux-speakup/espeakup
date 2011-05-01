@@ -31,6 +31,11 @@
 #define PACKAGE_VERSION "0.80-dev"
 #define PACKAGE_BUGREPORT "http://github.com/williamh/espeakup/issues"
 
+enum espeakup_mode_t {
+	ESPEAKUP_MODE_SPEAKUP,
+	ESPEAKUP_MODE_ACSINT
+};
+
 enum command_t {
 	CMD_SET_FREQUENCY,
 	CMD_SET_PITCH,
@@ -70,6 +75,7 @@ struct synth_t {
 
 extern struct queue_t *synth_queue;
 extern int debug;
+extern enum espeakup_mode_t espeakup_mode;
 
 extern void process_cli(int argc, char **argv);
 extern void *signal_thread(void *arg);
