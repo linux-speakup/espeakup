@@ -27,7 +27,7 @@ install: espeakup
 	${INSTALL} -d ${DESTDIR}${BINDIR}
 	${INSTALL} -m ${BINMODE} $< ${DESTDIR}${BINDIR}
 	${INSTALL} -d ${DESTDIR}${MANDIR}/man8
-	${INSTALL} -m 644 espeakup.8 ${DESTDIR}${MANDIR}/man8
+	${INSTALL} -m ${MANMODE} espeakup.8 ${DESTDIR}${MANDIR}/man8
 
 espeakup: ${OBJS}
 
