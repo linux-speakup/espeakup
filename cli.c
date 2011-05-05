@@ -45,6 +45,7 @@ static void show_help()
 {
 	printf("Usage: espeakup [options]\n\n");
 	printf("Options are as follows:\n");
+	printf("  --pid-path=path, -P path\t\tSet path for pid file.\n");
 	printf("  --default-voice=voice, -V voice\tSet default voice.\n");
 	printf("  --debug, -d\t\t\t\tDebug mode (stay in the foreground).\n");
 	printf("  --help, -h\t\t\t\tShow this help.\n");
