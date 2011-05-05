@@ -27,7 +27,7 @@
 #include "espeakup.h"
 
 /* path to our pid file */
-const char *pidPath = "/var/run/espeakup.pid";
+char *pidPath = "/var/run/espeakup.pid";
 
 int debug = 0;
 struct queue_t *synth_queue = NULL;

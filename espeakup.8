@@ -9,6 +9,9 @@ espeakup \(em connect Speakup to the ESpeak TTS engine
 .SH SYNOPSIS
 .B espeakup
 [
+.B \-\^\-pid-path=path
+]
+[
 .B \-\^\-default-voice=voicename
 ]
 [
@@ -21,6 +24,9 @@ espeakup \(em connect Speakup to the ESpeak TTS engine
 .B \-\^\-version
 ]
 .SH OPTIONS
+.TP
+.B \-P path, \-\^\-pid-path=path
+Set the full path for the pid file espeakup uses when in daemon mode.
 .TP
 .B \-V voicename, \-\^\-default-voice=voicename
 Set the espeak voice to be used by default.

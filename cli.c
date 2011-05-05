@@ -24,12 +24,16 @@
 
 #include "espeakup.h"
 
+/* pid path */
+extern char *pidPath;
+
 /* default voice */
 extern char *defaultVoice;
 
 /* command line options */
-const char *shortOptions = "dhV:v";
+const char *shortOptions = "P:V:dhv";
 const struct option longOptions[] = {
+	{"pid-path", required_argument, NULL, 'P'},
 	{"default-voice", required_argument, NULL, 'V'},
 	{"debug", no_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
@@ -61,10 +65,16 @@ static void show_version(void)
 void process_cli(int argc, char **argv)
 {
 	int opt;
+	char *cp;
 
 	do {
 		opt = getopt_long(argc, argv, shortOptions, longOptions, NULL);
 		switch (opt) {
+		case 'p':
+			cp = strdup(optarg);
+			if (cp != NULL)
+				pidPath = cp;
+			break;
 		case 'V':
 			defaultVoice = strdup(optarg);
 			break;
