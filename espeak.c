@@ -34,8 +34,8 @@ char *defaultVoice = NULL;
 /* multipliers and offsets */
 const int frequencyMultiplier = 11;
 const int pitchMultiplier = 11;
-const int rateMultiplier = 34;
-const int rateOffset = 84;
+const int rateMultiplier = 41;
+const int rateOffset = 80;
 const int volumeMultiplier = 22;
 
 volatile int stop_requested = 0;
