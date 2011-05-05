@@ -26,104 +26,19 @@
 #include <ctype.h>
 
 #include "espeakup.h"
+#include "stringhandling.h"
 
 /* max buffer size */
-/* A big fat buffer. */
 static const size_t maxBufferSize = 16 * 1024 + 1;
 
 /* synth flush character */
 static const int synthFlushChar = 0x18;
-
 
 static int softFD = 0;
 
 /* Text accumulator: */
 char *textAccumulator;
 int textAccumulator_l;
-
-/* String routines, borrowed from edbrowse: */
-char *EMPTYSTRING = "";
-
-void *allocMem(size_t n)
-{
-	void *s;
-	if (!n)
-		return EMPTYSTRING;
-	if (!(s = malloc(n))) {
-		fprintf(stderr, "Out of memory!\n");
-		exit(1);
-	}
-	return s;
-}								/* allocMem */
-
-void *reallocMem(void *p, size_t n)
-{
-	void *s;
-	if (!n) {
-		fprintf(stderr, "Trying to reallocate memory with size of 0.\n");
-		exit(1);
-	}
-	if (!p) {
-		fprintf(stderr, "realloc called with a NULL pointer!\n");
-		exit(1);
-	}
-	if (p == EMPTYSTRING)
-		return allocMem(n);
-	if (!(s = realloc(p, n))) {
-		fprintf(stderr, "Failed to allocate memory.\n");
-		exit(1);
-	}
-	return s;
-}								/* reallocMem */
-
-char *initString(int *l)
-{
-	*l = 0;
-	return EMPTYSTRING;
-}
-
-void stringAndString(char **s, int *l, const char *t)
-{
-	char *p = *s;
-	int oldlen, newlen, x;
-	oldlen = *l;
-	newlen = oldlen + strlen(t);
-	*l = newlen;
-	++newlen;					/* room for the 0 */
-	x = oldlen ^ newlen;
-	if (x > oldlen) {			/* must realloc */
-		newlen |= (newlen >> 1);
-		newlen |= (newlen >> 2);
-		newlen |= (newlen >> 4);
-		newlen |= (newlen >> 8);
-		newlen |= (newlen >> 16);
-		p = reallocMem(p, newlen);
-		*s = p;
-	}
-	strcpy(p + oldlen, t);
-}								/* stringAndString */
-
-void stringAndBytes(char **s, int *l, const char *t, int cnt)
-{
-	char *p = *s;
-	int oldlen, newlen, x;
-	oldlen = *l;
-	newlen = oldlen + cnt;
-	*l = newlen;
-	++newlen;
-	x = oldlen ^ newlen;
-	if (x > oldlen) {			/* must realloc */
-		newlen |= (newlen >> 1);
-		newlen |= (newlen >> 2);
-		newlen |= (newlen >> 4);
-		newlen |= (newlen >> 8);
-		newlen |= (newlen >> 16);
-		p = reallocMem(p, newlen);
-		*s = p;
-	}
-	memcpy(p + oldlen, t, cnt);
-	p[oldlen + cnt] = 0;
-}								/* stringAndBytes */
 
 static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 {

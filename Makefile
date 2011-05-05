@@ -17,7 +17,8 @@ SRCS = cli.c \
 	espeakup.c  \
 	queue.c \
 	signal.c \
-		softsynth.c
+	softsynth.c \
+	stringhandling.c
 
 OBJS = ${SRCS:.c=.o}
 
