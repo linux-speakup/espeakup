@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	process_cli(argc, argv);
 
 	/* Is the espeakup daemon running? */
-	if (espeakup_is_running()) {
+	if (espeakup_mode != ESPEAKUP_MODE_ACSINT && espeakup_is_running()) {
 		printf("Espeakup is already running!\n");
 		return 1;
 	}
