@@ -27,7 +27,7 @@
 /* default voice settings */
 const int defaultFrequency = 5;
 const int defaultPitch = 5;
-const int defaultRate = 5;
+const int defaultRate = 2;
 const int defaultVolume = 5;
 char *defaultVoice = NULL;
 
