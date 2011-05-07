@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 
 	espeak_Terminate();
 	close_softsynth();
-	if (!debug)
+	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP)
 		unlink(pidPath);
 	return 0;
 }
