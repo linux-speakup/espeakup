@@ -22,9 +22,9 @@
  */
 
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#include "stringhandling.h"
 
 struct queue_entry_t {
 	void *data;
@@ -38,11 +38,9 @@ struct queue_t {
 
 struct queue_t *new_queue(void)
 {
-	struct queue_t *q = malloc(sizeof(struct queue_t));
-	if (q) {
-		q->head = NULL;
-		q->tail = NULL;
-	}
+	struct queue_t *q = allocMem(sizeof(struct queue_t));
+	q->head = NULL;
+	q->tail = NULL;
 	return q;
 }
 
@@ -51,11 +49,7 @@ int queue_add(struct queue_t *q, void *data)
 	struct queue_entry_t *tmp;
 
 	assert(data);
-	tmp = malloc(sizeof(struct queue_entry_t));
-	if (!tmp) {
-		printf("Unable to allocate memory for queue entry.\n");
-		return 0;
-	}
+	tmp = allocMem(sizeof(struct queue_entry_t));
 	tmp->data = data;
 	tmp->next = NULL;
 	if (!q->tail) {

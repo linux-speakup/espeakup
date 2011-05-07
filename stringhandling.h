@@ -20,6 +20,8 @@
 #ifndef __STRINGHANDLING_H
 #define __STRINGHANDLING_H
 
+#include <stddef.h>
+
 extern char *EMPTYSTRING;
 
 void *allocMem(size_t n);

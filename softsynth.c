@@ -45,11 +45,7 @@ static void queue_add_cmd(enum command_t cmd, enum adjust_t adj, int value)
 	struct espeak_entry_t *entry;
 	int added = 0;
 
-	entry = malloc(sizeof(struct espeak_entry_t));
-	if (!entry) {
-		perror("unable to allocate memory for queue entry");
-		return;
-	}
+	entry = allocMem(sizeof(struct espeak_entry_t));
 	entry->cmd = cmd;
 	entry->adjust = adj;
 	entry->value = value;
@@ -67,11 +63,7 @@ static void queue_add_text(char *txt, size_t length)
 	struct espeak_entry_t *entry;
 	int added = 0;
 
-	entry = malloc(sizeof(struct espeak_entry_t));
-	if (!entry) {
-		perror("unable to allocate memory for queue entry");
-		return;
-	}
+	entry = allocMem(sizeof(struct espeak_entry_t));
 	entry->cmd = CMD_SPEAK_TEXT;
 	entry->adjust = ADJ_SET;
 	entry->buf = strdup(txt);
