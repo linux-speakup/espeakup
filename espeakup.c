@@ -91,20 +91,22 @@ int main(int argc, char **argv)
 	/* process command line options */
 	process_cli(argc, argv);
 
-	/* Is the espeakup daemon running? */
-	if (espeakup_mode != ESPEAKUP_MODE_ACSINT && espeakup_is_running()) {
-		printf("Espeakup is already running!\n");
-		return 1;
-	}
+	if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
+		/* Is the espeakup daemon running? */
+		if (espeakup_is_running()) {
+			printf("Espeakup is already running!\n");
+			return 1;
+		}
 
-/*
- * If we are not in debug mode, become a daemon and store the pid.
- */
-	if (espeakup_mode != ESPEAKUP_MODE_ACSINT && !debug) {
-		daemon(0, 1);
-		if (create_pid_file() < 0) {
-			perror("Unable to create pid file");
-			return 2;
+		/*
+		 * If we are not in debug mode, daemonize and store the pid.
+		 */
+		if (!debug) {
+			daemon(0, 1);
+			if (create_pid_file() < 0) {
+				perror("Unable to create pid file");
+				return 2;
+			}
 		}
 	}
 
