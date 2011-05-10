@@ -185,7 +185,6 @@ static void synth_queue_clear()
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
-	char markbuff[50];
 	static struct espeak_entry_t *current = NULL;
 
 	if (current != queue_peek(synth_queue)) {
@@ -197,11 +196,6 @@ static void queue_process_entry(struct synth_t *s)
 	switch (current->cmd) {
 	case CMD_SET_FREQUENCY:
 		error = set_frequency(s, current->value, current->adjust);
-		break;
-	case CMD_SET_MARK:
-		sprintf(markbuff, "<mark name=\"%d\"/>", current->value);
-		error = espeak_Synth(markbuff, strlen(markbuff)+1, 0, POS_CHARACTER,
-				0, espeakSSML, NULL, NULL);
 		break;
 	case CMD_SET_PITCH:
 		error = set_pitch(s, current->value, current->adjust);
