@@ -123,6 +123,9 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		case 'f':
 			cmd = CMD_SET_FREQUENCY;
 			break;
+		case 'i':
+			cmd = CMD_SET_MARK;
+			break;
 		case 'p':
 			cmd = CMD_SET_PITCH;
 			break;

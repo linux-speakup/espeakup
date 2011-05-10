@@ -38,6 +38,7 @@ enum espeakup_mode_t {
 
 enum command_t {
 	CMD_SET_FREQUENCY,
+	CMD_SET_MARK,
 	CMD_SET_PITCH,
 	CMD_SET_PUNCTUATION,
 	CMD_SET_RATE,
