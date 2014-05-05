@@ -23,23 +23,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "espeakup.h"
 
+/* program version */
+const char *Version = "0.71";
+
 /* path to our pid file */
-char *pidPath = "/var/run/espeakup.pid";
+const char *pidPath = "/var/run/espeakup.pid";
 
+/* default voice settings */
+const int defaultFrequency = 5;
+const int defaultPitch = 5;
+const int defaultRate = 5;
+const int defaultVolume = 5;
+
+// there is no actual support for adjusting this from within speakup_soft,
+// so the unmultiplied value will just be passed to espeak
+int defaultRange = 50;
+char *defaultVoice = NULL;
 int debug = 0;
-enum espeakup_mode_t espeakup_mode = ESPEAKUP_MODE_SPEAKUP;
-struct queue_t *synth_queue = NULL;
-
-int self_pipe_fds[2];
-volatile int should_run = 1;
-espeak_AUDIO_OUTPUT audio_mode;
-
-pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
-pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
 
 int espeakup_is_running(void)
 {
@@ -71,96 +75,84 @@ int create_pid_file(void)
 	return 0;
 }
 
+void espeakup_sighandler(int sig)
+{
+	if (debug)
+		printf("Caught signal %i\n", sig);
+
+	/* clear the queue */
+	queue_clear();
+
+	/* shut down espeak and close the softsynth */
+	espeak_Terminate();
+	close_softsynth();
+
+	if (!debug)
+		unlink(pidPath);
+	exit(0);
+}
+
 int main(int argc, char **argv)
 {
-	sigset_t sigset;
-	int err;
-	pthread_t signal_thread_id;
-	pthread_t espeak_thread_id;
-	pthread_t softsynth_thread_id;
+	pthread_t queue_thread_id;
 	struct synth_t s = {
 		.voice = "",
 	};
-	synth_queue = new_queue();
-
-	if (!synth_queue) {
-		fprintf(stderr, "Unable to allocate memory.\n");
-		return 2;
-	}
 
 	/* process command line options */
 	process_cli(argc, argv);
 
-	if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
-		/* Is the espeakup daemon running? */
-		if (espeakup_is_running()) {
-			printf("Espeakup is already running!\n");
-			return 1;
+	/* Is the espeakup daemon running? */
+	if (espeakup_is_running()) {
+		printf("Espeakup is already running!\n");
+		return 1;
+	}
+
+	/* open the softsynth. */
+	if (! open_softsynth()) {
+		perror("Unable to open the softsynth device");
+		return 3;
+	}
+
+	/* register signal handler */
+	signal(SIGINT, espeakup_sighandler);
+	signal(SIGTERM, espeakup_sighandler);
+
+	if (!debug) {
+		/* become a daemon */
+		daemon(0, 1);
+
+		/* write our pid file. */
+		if (create_pid_file() < 0) {
+			perror("Unable to create pid file");
+			return 2;
 		}
-
-		/*
-		 * If we are not in debug mode, daemonize and store the pid.
-		 */
-		if (!debug) {
-			daemon(0, 1);
-			if (create_pid_file() < 0) {
-				perror("Unable to create pid file");
-				return 2;
-			}
-		}
 	}
 
-	/* set up the pipe used to wake the espeak thread */
-	if (pipe(self_pipe_fds) < 0) {
-		perror("Unable to create pipe");
-		return 5;
-	}
+	/* initialize espeak */
+	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
 
-	/* create the signal processing thread here. */
-	err = pthread_create(&signal_thread_id, NULL, signal_thread, NULL);
+	/* Setup initial voice parameters */
+	if (defaultVoice) {
+		set_voice(&s, defaultVoice);
+		free(defaultVoice);
+		defaultVoice = NULL;
+	}
+	set_frequency(&s, defaultFrequency, ADJ_SET);
+	set_pitch(&s, defaultPitch, ADJ_SET);
+	set_range(&s, defaultRange, ADJ_SET);
+	set_rate(&s, defaultRate, ADJ_SET);
+	set_volume(&s, defaultVolume, ADJ_SET);
+	espeak_SetParameter(espeakCAPITALS, 0, 0);
+
+	/* Spawn our queue-processing thread. */
+	int err = pthread_create(&queue_thread_id, NULL, &queue_runner, &s);
 	if (err != 0) {
 		return 4;
 	}
 
-	/*
-	 * Set up the signal mask which will be the default for all threads.
-	 * We are handling sigint and sigterm, so block them.
-	 */
-	sigemptyset(&sigset);
-	sigaddset(&sigset, SIGINT);
-	sigaddset(&sigset, SIGTERM);
-	sigprocmask(SIG_BLOCK, &sigset, NULL);
+	/* run the main loop */
+	main_loop(&s);
 
-/* Initialize espeak */
-	if (initialize_espeak(&s) < 0) {
-		return 2;
-	}
-
-/* open the softsynth */
-	if (open_softsynth() < 0) {
-		return 2;
-	}
-
-	/* Spawn our softsynth thread. */
-	err = pthread_create(&softsynth_thread_id, NULL, softsynth_thread, &s);
-	if (err != 0) {
-		return 4;
-	}
-
-	/* Spawn our espeak-interacting thread. */
-	err = pthread_create(&espeak_thread_id, NULL, espeak_thread, &s);
-	if (err != 0) {
-		return 4;
-	}
-
-	/* wait for the threads to shut down. */
-	pthread_join(signal_thread_id, NULL);
-	pthread_join(softsynth_thread_id, NULL);
-	pthread_join(espeak_thread_id, NULL);
-
-	espeak_Terminate();
-	close_softsynth();
-	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP)
-		unlink(pidPath);
 	return 0;
 }

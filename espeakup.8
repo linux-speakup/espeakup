@@ -9,10 +9,16 @@ espeakup \(em connect Speakup to the ESpeak TTS engine
 .SH SYNOPSIS
 .B espeakup
 [
-.B \-\^\-pid-path=path
+.B \-\^\-default-voice=voicename
 ]
 [
-.B \-\^\-default-voice=voicename
+.B \-\^\-rate-multiplier=integer
+]
+[
+.B \-\^\-rate-offset=integer
+]
+[
+.B \-\^\-range=integer
 ]
 [
 .B \-\^\-debug
@@ -25,11 +31,17 @@ espeakup \(em connect Speakup to the ESpeak TTS engine
 ]
 .SH OPTIONS
 .TP
-.B \-P path, \-\^\-pid-path=path
-Set the full path for the pid file espeakup uses when in daemon mode.
-.TP
 .B \-V voicename, \-\^\-default-voice=voicename
 Set the espeak voice to be used by default.
+.TP
+.B \-m integer, \-\^\-rate-multiplier=integer
+Set the multiplier to use for calculating Espeak rate.
+.TP
+.B \-o integer, \-\^\-rate-offset=integer
+Set the offset to use for calculating Espeak rate.
+.TP
+.B \-r integer, \-\^\-default-range=integer
+Set the espeak range to be used by default, from 0 to 100.
 .TP
 .B \-d, \-\^\-debug
 run in the foreground, rather than becoming a daemon process.

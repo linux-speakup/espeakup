@@ -22,23 +22,13 @@
 
 /* This was added for gcc 4.3 */
 #include <stddef.h>
-#include <pthread.h>
 
 #include <espeak/speak_lib.h>
-
-#include "queue.h"
-
-#define PACKAGE_VERSION "0.80-dev"
-#define PACKAGE_BUGREPORT "http://github.com/williamh/espeakup/issues"
-
-enum espeakup_mode_t {
-	ESPEAKUP_MODE_SPEAKUP,
-	ESPEAKUP_MODE_ACSINT
-};
 
 enum command_t {
 	CMD_SET_FREQUENCY,
 	CMD_SET_PITCH,
+	CMD_SET_RANGE,
 	CMD_SET_PUNCTUATION,
 	CMD_SET_RATE,
 	CMD_SET_VOICE,
@@ -54,17 +44,10 @@ enum adjust_t {
 	ADJ_INC,
 };
 
-struct espeak_entry_t {
-	enum command_t cmd;
-	enum adjust_t adjust;
-	int value;
-	char *buf;
-	int len;
-};
-
 struct synth_t {
 	int frequency;
 	int pitch;
+	int range;
 	int punct;
 	int rate;
 	char voice[10];
@@ -73,25 +56,31 @@ struct synth_t {
 	int len;
 };
 
-extern struct queue_t *synth_queue;
 extern int debug;
-extern enum espeakup_mode_t espeakup_mode;
 
 extern void process_cli(int argc, char **argv);
-extern void *signal_thread(void *arg);
-extern int initialize_espeak(struct synth_t *s);
-extern void *espeak_thread(void *arg);
+extern void queue_clear(void);
+extern void queue_add_cmd(enum command_t cmd, enum adjust_t adj,
+						  int value);
+extern void queue_add_text(char *txt, size_t length);
+extern espeak_ERROR set_frequency(struct synth_t *s, int freq,
+								  enum adjust_t adj);
+extern espeak_ERROR set_pitch(struct synth_t *s, int pitch,
+							  enum adjust_t adj);
+extern espeak_ERROR set_range(struct synth_t *s, int range,
+                                                          enum adjust_t adj);
+extern espeak_ERROR set_punctuation(struct synth_t *s, int punct,
+							  enum adjust_t adj);
+extern espeak_ERROR set_rate(struct synth_t *s, int rate,
+							 enum adjust_t adj);
+extern espeak_ERROR set_voice(struct synth_t *s, char *voice);
+extern espeak_ERROR set_volume(struct synth_t *s, int vol,
+							   enum adjust_t adj);
+extern espeak_ERROR stop_speech(void);
+extern espeak_ERROR speak_text(struct synth_t *s);
 extern int open_softsynth(void);
 extern void close_softsynth(void);
-extern void *softsynth_thread(void *arg);
-extern volatile int should_run;
-extern volatile int stop_requested;
-extern int self_pipe_fds[2];
-#define PIPE_READ_FD (self_pipe_fds[0])
-#define PIPE_WRITE_FD (self_pipe_fds[1])
-
-extern pthread_cond_t runner_awake;
-extern pthread_cond_t stop_acknowledged;
-extern pthread_mutex_t queue_guard;
+extern void main_loop(struct synth_t *s);
+extern void * queue_runner(void *arg);
 
 #endif
