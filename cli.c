@@ -24,18 +24,26 @@
 
 #include "espeakup.h"
 
-/* pid path */
-extern char *pidPath;
+/* program version */
+extern const char *Version;
 
 /* default voice */
 extern char *defaultVoice;
 
+/* default range */
+extern int defaultRange;
+
+/* rate control variables */
+extern int rateMultiplier;
+extern int rateOffset;
+
 /* command line options */
-const char *shortOptions = "P:V:adhv";
+const char *shortOptions = "dhV:m:o:r:v";
 const struct option longOptions[] = {
-	{"pid-path", required_argument, NULL, 'P'},
 	{"default-voice", required_argument, NULL, 'V'},
-	{"acsint", no_argument, NULL, 'a'},
+	{"rate-multiplier", required_argument, NULL, 'm'},
+	{"rate-offset", required_argument, NULL, 'o'},
+	{"range", required_argument, NULL, 'r'},
 	{"debug", no_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
 	{"version", no_argument, NULL, 'v'},
@@ -46,8 +54,10 @@ static void show_help()
 {
 	printf("Usage: espeakup [options]\n\n");
 	printf("Options are as follows:\n");
-	printf("  --pid-path=path, -P path\t\tSet path for pid file.\n");
 	printf("  --default-voice=voice, -V voice\tSet default voice.\n");
+	printf("  --rate-multiplier=integer, -m integer\tSet rate multiplier.\n");
+	printf("  --rate-offset=integer, -o integer\tSet rate offset.\n");
+	printf("  --range=integer, -r integer\tSet range (between 0 and 100).\n");
 	printf("  --debug, -d\t\t\t\tDebug mode (stay in the foreground).\n");
 	printf("  --help, -h\t\t\t\tShow this help.\n");
 	printf("  --version, -v\t\t\t\tDisplay the software version.\n");
@@ -56,32 +66,31 @@ static void show_help()
 
 static void show_version(void)
 {
-	printf("ESpeakup %s\n", PACKAGE_VERSION);
+	printf("espeakup %s\n", Version);
 	printf("Copyright (C) 2008 William Hubbs\n");
 	printf("License GPLv3+: GNU GPL version 3 or later\n");
 	printf("You are free to change and redistribute this software.\n");
-	printf("Please report bugs to %s\n", PACKAGE_BUGREPORT);
 	exit(0);
 }
 
 void process_cli(int argc, char **argv)
 {
 	int opt;
-	char *cp;
 
 	do {
 		opt = getopt_long(argc, argv, shortOptions, longOptions, NULL);
 		switch (opt) {
-		case 'p':
-			cp = strdup(optarg);
-			if (cp != NULL)
-				pidPath = cp;
-			break;
 		case 'V':
 			defaultVoice = strdup(optarg);
 			break;
-		case 'a':
-			espeakup_mode = ESPEAKUP_MODE_ACSINT;
+		case 'm':
+			rateMultiplier = atoi(optarg);
+			break;
+			case 'o':
+			rateOffset = atoi(optarg);
+			break;
+		case 'r':
+			defaultRange = atoi(optarg);
 			break;
 		case 'd':
 			debug = 1;
