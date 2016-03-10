@@ -119,8 +119,15 @@ static espeak_ERROR set_rate(struct synth_t *s, int rate,
 static espeak_ERROR set_voice(struct synth_t *s, char *voice)
 {
 	espeak_ERROR rc;
+	espeak_VOICE voice_select;
 
 	rc = espeak_SetVoiceByName(voice);
+	if (rc != EE_OK)
+	{
+		memset(&voice_select, 0, sizeof(voice_select));
+		voice_select.languages = voice;
+		rc = espeak_SetVoiceByProperties(&voice_select);
+	}
 	if (rc == EE_OK)
 		strcpy(s->voice, voice);
 	return rc;
