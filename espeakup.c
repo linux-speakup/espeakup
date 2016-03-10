@@ -98,15 +98,9 @@ int main(int argc, char **argv)
 			return 1;
 		}
 
-		/*
-		 * If we are not in debug mode, daemonize and store the pid.
-		 */
+		/* Daemonize if we are not in debug mode. */
 		if (!debug) {
 			daemon(0, 1);
-			if (create_pid_file() < 0) {
-				perror("Unable to create pid file");
-				return 2;
-			}
 		}
 	}
 
@@ -151,6 +145,14 @@ int main(int argc, char **argv)
 	err = pthread_create(&espeak_thread_id, NULL, espeak_thread, &s);
 	if (err != 0) {
 		return 4;
+	}
+
+	/* Store the pid */
+	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
+		if (create_pid_file() < 0) {
+			perror("Unable to create pid file");
+			return 2;
+		}
 	}
 
 	/* wait for the threads to shut down. */
