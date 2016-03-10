@@ -166,8 +166,25 @@ static espeak_ERROR speak_text(struct synth_t *s)
 	if (espeakup_mode == ESPEAKUP_MODE_ACSINT)
 		synth_mode |= espeakSSML;
 
-	rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, synth_mode,
-					  NULL, NULL);
+	if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP && (s->len == 1)) {
+		char *buf;
+		int n;
+		n = asprintf(&buf,
+			     "<say-as interpret-as=\"characters\">%c</say-as>",
+			     s->buf[0]);
+		if (n == -1) {
+			/* D'oh.  Not much to do on allocation failure.
+			 * Perhaps espeak will happen to say the character */
+			rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER,
+					  0, synth_mode, NULL, NULL);
+		} else {
+			rc = espeak_Synth(buf, n + 1, 0, POS_CHARACTER, 0,
+					  espeakSSML, NULL, NULL);
+			free(buf);
+		}
+	} else
+		rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0,
+				  synth_mode, NULL, NULL);
 	return rc;
 }
 
