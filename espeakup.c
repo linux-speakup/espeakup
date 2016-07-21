@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/file.h>
 
 #include "espeakup.h"
 
@@ -41,38 +43,103 @@ pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
 pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
 
-int espeakup_is_running(void)
+int espeakup_start_daemon(void)
 {
-	int rc;
-	FILE *pidFile;
+	int fds[2];
 	pid_t pid;
+	char c;
 
-	rc = 0;
-	pidFile = fopen(pidPath, "r");
-	if (pidFile) {
-		fscanf(pidFile, "%d", &pid);
-		fclose(pidFile);
-		if (!kill(pid, 0) || errno != ESRCH)
-			rc = 1;
+	if (pipe(fds) < 0) {
+		perror("pipe");
+		exit(1);
 	}
-	return rc;
+	pid = fork();
+
+	if (pid < 0) {
+		perror("fork");
+		exit(1);
+	}
+	if (pid) {
+		/* Parent, just wait for daemon */
+		if (read(fds[0], &c, 1) < 0) {
+			printf("Espeakup is already running!\n");
+			exit(1);
+		}
+		exit(c);
+	}
+
+	/* Child, create new session */
+	setsid();
+	pid = fork();
+	if (pid)
+		/* Intermediate child, just exit */
+		exit(0);
+
+	/* Child */
+	if (chdir("/") < 0) {
+		c = 1;
+		(void)write(fds[1], &c, 1);
+		exit(1);
+	}
+	return fds[1];
 }
 
-int create_pid_file(void)
+int espeakup_is_running(void)
 {
-	FILE *pidFile;
+	int pidFile;
+	int n;
+	char s[16];
+	pid_t pid;
 
-	pidFile = fopen(pidPath, "w");
-	if (!pidFile)
+	pidFile = open(pidPath, O_RDWR | O_CREAT, 0666);
+	if (pidFile < 0) {
+		printf("Can not work with the pid file %s: %s\n", pidPath,
+		       strerror(errno));
 		return -1;
+	}
 
-	fprintf(pidFile, "%d\n", getpid());
-	fclose(pidFile);
+	if (flock(pidFile, LOCK_EX) < 0) {
+		printf("Can not lock the pid file %s: %s\n", pidPath,
+		       strerror(errno));
+		goto error;
+	}
+	n = read(pidFile, s, sizeof(s) - 1);
+	if (n < 0) {
+		printf("Can not read the pid file %s: %s\n", pidPath,
+		       strerror(errno));
+		goto error;
+	}
+	s[n] = 0;
+	n = sscanf(s, "%d", &pid);
+	if (n == 1 && (!kill(pid, 0) || errno != ESRCH)) {
+		/* Already running */
+		close(pidFile);
+		return 1;
+	}
+	if (ftruncate(pidFile, 0) < 0) {
+		printf("Could not truncate the pid file %s: %s\n", pidPath,
+		       strerror(errno));
+		goto error;
+	}
+	lseek(pidFile, 0, SEEK_SET);
+	n = snprintf(s, sizeof(s), "%d", getpid());
+	if (write(pidFile, s, n) < 0) {
+		printf("Could not write to the pid file %s: %s\n", pidPath,
+		       strerror(errno));
+		goto error;
+	}
+	close(pidFile);
 	return 0;
+
+error:
+	close(pidFile);
+	return -1;
 }
 
 int main(int argc, char **argv)
 {
+	int fd, devnull;
+	char ret = 0;
 	sigset_t sigset;
 	int err;
 	pthread_t signal_thread_id;
@@ -88,32 +155,37 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	/* process command line options */
-	process_cli(argc, argv);
-
-	if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
-		/* Is the espeakup daemon running? */
-		if (espeakup_is_running()) {
-			printf("Espeakup is already running!\n");
-			return 1;
-		}
-
-		/* Daemonize if we are not in debug mode. */
-		if (!debug) {
-			daemon(0, 1);
-		}
-	}
-
 	/* set up the pipe used to wake the espeak thread */
 	if (pipe(self_pipe_fds) < 0) {
 		perror("Unable to create pipe");
 		return 5;
 	}
 
+	/* process command line options */
+	process_cli(argc, argv);
+
+	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
+		fd = espeakup_start_daemon();
+
+		if (espeakup_is_running()) {
+			printf("Espeakup is already running!\n");
+			ret = 1;
+			goto out;
+		}
+
+		devnull = open("/dev/null", O_RDWR);
+		dup2(devnull, STDIN_FILENO);
+		dup2(devnull, STDOUT_FILENO);
+		dup2(devnull, STDERR_FILENO);
+		if (devnull > 2)
+			close(devnull);
+	}
+
 	/* create the signal processing thread here. */
 	err = pthread_create(&signal_thread_id, NULL, signal_thread, NULL);
 	if (err != 0) {
-		return 4;
+		ret = 4;
+		goto out;
 	}
 
 	/*
@@ -127,33 +199,32 @@ int main(int argc, char **argv)
 
 /* Initialize espeak */
 	if (initialize_espeak(&s) < 0) {
-		return 2;
+		ret = 2;
+		goto out;
 	}
 
 /* open the softsynth */
 	if (open_softsynth() < 0) {
-		return 2;
+		ret = 2;
+		goto out;
 	}
 
 	/* Spawn our softsynth thread. */
 	err = pthread_create(&softsynth_thread_id, NULL, softsynth_thread, &s);
 	if (err != 0) {
-		return 4;
+		ret = 4;
+		goto out;
 	}
 
 	/* Spawn our espeak-interacting thread. */
 	err = pthread_create(&espeak_thread_id, NULL, espeak_thread, &s);
 	if (err != 0) {
-		return 4;
+		ret = 4;
+		goto out;
 	}
 
-	/* Store the pid */
-	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
-		if (create_pid_file() < 0) {
-			perror("Unable to create pid file");
-			return 2;
-		}
-	}
+	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP)
+		(void)write(fd, &ret, 1);
 
 	/* wait for the threads to shut down. */
 	pthread_join(signal_thread_id, NULL);
@@ -162,7 +233,15 @@ int main(int argc, char **argv)
 
 	espeak_Terminate();
 	close_softsynth();
-	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP)
-		unlink(pidPath);
-	return 0;
+
+out:
+	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP) {
+		if (ret != 1)
+			unlink(pidPath);
+		if (ret != 0)
+			(void)write(fd, &ret, 1);
+		/* If ret was 0, the status byte was written before joining
+		 * the threads. */
+	}
+	return ret;
 }
