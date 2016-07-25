@@ -57,7 +57,7 @@ static void show_help()
 static void show_version(void)
 {
 	printf("ESpeakup %s\n", PACKAGE_VERSION);
-	printf("Copyright (C) 2008 William Hubbs\n");
+	printf("Copyright (C) 2008 William Hubbs <w.d.hubbs@gmail.com>\n");
 	printf("License GPLv3+: GNU GPL version 3 or later\n");
 	printf("You are free to change and redistribute this software.\n");
 	printf("Please report bugs to %s\n", PACKAGE_BUGREPORT);
