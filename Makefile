@@ -11,6 +11,7 @@ LDLIBS = -lespeak -lpthread
 INSTALL = install
 BINMODE = 0755
 MANMODE = 0644
+CHANGELOG_LIMIT?= --after="1 year ago"
 
 SRCS = cli.c \
 	espeak.c \
@@ -23,6 +24,9 @@ SRCS = cli.c \
 OBJS = ${SRCS:.c=.o}
 
 all: espeakup
+
+changelog:
+	git log ${CHANGELOG_LIMIT} --format=full > ChangeLog
 
 install: espeakup
 	${INSTALL} -d ${DESTDIR}${BINDIR}
