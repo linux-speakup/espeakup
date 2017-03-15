@@ -170,9 +170,13 @@ static espeak_ERROR speak_text(struct synth_t *s)
 	if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP && (s->len == 1)) {
 		char *buf;
 		int n;
-		n = asprintf(&buf,
-			     "<say-as interpret-as=\"characters\">%c</say-as>",
-			     s->buf[0]);
+		if (s->buf[0] == ' ')
+			n = asprintf(&buf,
+				     "<say-as interpret-as=\"tts:char\">&#32;</say-as>");
+		else
+			n = asprintf(&buf,
+				     "<say-as interpret-as=\"characters\">%c</say-as>",
+				     s->buf[0]);
 		if (n == -1) {
 			/* D'oh.  Not much to do on allocation failure.
 			 * Perhaps espeak will happen to say the character */
