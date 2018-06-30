@@ -45,6 +45,7 @@ enum command_t {
 	CMD_SET_VOLUME,
 	CMD_SPEAK_TEXT,
 	CMD_FLUSH,
+	CMD_PAUSE,
 	CMD_UNKNOWN,
 };
 
@@ -86,6 +87,7 @@ extern void close_softsynth(void);
 extern void *softsynth_thread(void *arg);
 extern volatile int should_run;
 extern volatile int stop_requested;
+extern int paused_espeak;
 extern int self_pipe_fds[2];
 #define PIPE_READ_FD (self_pipe_fds[0])
 #define PIPE_WRITE_FD (self_pipe_fds[1])

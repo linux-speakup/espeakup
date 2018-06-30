@@ -133,6 +133,9 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		case 'v':
 			cmd = CMD_SET_VOLUME;
 			break;
+		case 'P':
+			cmd = CMD_PAUSE;
+			break;
 		default:
 			cmd = CMD_UNKNOWN;
 			break;
