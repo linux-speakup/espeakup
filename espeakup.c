@@ -231,7 +231,8 @@ int main(int argc, char **argv)
 	pthread_join(softsynth_thread_id, NULL);
 	pthread_join(espeak_thread_id, NULL);
 
-	espeak_Terminate();
+	if (!paused_espeak)
+		espeak_Terminate();
 	close_softsynth();
 
 out:

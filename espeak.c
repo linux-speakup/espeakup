@@ -40,6 +40,7 @@ const int rateOffset = 80;
 const int volumeMultiplier = 22;
 
 volatile int stop_requested = 0;
+int paused_espeak = 1;
 
 static int acsint_callback(short *wav, int numsamples, espeak_EVENT * events)
 {
@@ -211,6 +212,32 @@ static void synth_queue_clear()
 	}
 }
 
+static void reinitialize_espeak(struct synth_t *s)
+{
+	int rate;
+
+	/* Re-initialize espeak */
+	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 50, NULL, 0);
+	if (rate < 0) {
+		fprintf(stderr, "Unable to initialize espeak.\n");
+		return;
+	}
+
+	/* We need a callback in acsint mode, but not in speakup mode. */
+	if (espeakup_mode == ESPEAKUP_MODE_ACSINT)
+		espeak_SetSynthCallback(acsint_callback);
+
+	/* Set parameters again */
+	espeak_SetVoiceByName(s->voice);
+	espeak_SetParameter(espeakRANGE, s->frequency * frequencyMultiplier, 0);
+	espeak_SetParameter(espeakPITCH, s->pitch * pitchMultiplier, 0);
+	espeak_SetParameter(espeakRATE, s->rate * rateMultiplier + rateOffset, 0);
+	espeak_SetParameter(espeakVOLUME, (s->volume + 1) * volumeMultiplier, 0);
+	espeak_SetParameter(espeakCAPITALS, 0, 0);
+	paused_espeak = 0;
+	return;
+}
+
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
@@ -222,6 +249,11 @@ static void queue_process_entry(struct synth_t *s)
 		current = (struct espeak_entry_t *) queue_remove(synth_queue);
 	}
 	pthread_mutex_unlock(&queue_guard);
+
+	if (current->cmd != CMD_PAUSE && paused_espeak) {
+		reinitialize_espeak(s);
+	}
+
 	switch (current->cmd) {
 	case CMD_SET_FREQUENCY:
 		error = set_frequency(s, current->value, current->adjust);
@@ -245,6 +277,13 @@ static void queue_process_entry(struct synth_t *s)
 		s->buf = current->buf;
 		s->len = current->len;
 		error = speak_text(s);
+		break;
+	case CMD_PAUSE:
+		if (!paused_espeak) {
+			espeak_Cancel();
+			espeak_Terminate();
+			paused_espeak = 1;
+		}
 		break;
 	default:
 		break;
@@ -282,6 +321,7 @@ int initialize_espeak(struct synth_t *s)
 	set_rate(s, defaultRate, ADJ_SET);
 	set_volume(s, defaultVolume, ADJ_SET);
 	espeak_SetParameter(espeakCAPITALS, 0, 0);
+	paused_espeak = 0;
 	return 0;
 }
 
