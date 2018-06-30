@@ -311,7 +311,7 @@ int initialize_espeak(struct synth_t *s)
 		espeak_SetSynthCallback(acsint_callback);
 
 	/* Setup initial voice parameters */
-	if (defaultVoice) {
+	if (defaultVoice && defaultVoice[0]) {
 		set_voice(s, defaultVoice);
 		free(defaultVoice);
 		defaultVoice = NULL;
