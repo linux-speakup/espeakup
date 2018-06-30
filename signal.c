@@ -63,7 +63,9 @@ void *signal_thread(void *arg)
 			printf("espeakup caught signal %d\n", sig);
 			break;
 		}
+		pthread_mutex_lock(&queue_guard);
 	}
+	pthread_mutex_unlock(&queue_guard);
 	/* Tell the reader to stop, if it is in a select() call. */
 	write(PIPE_WRITE_FD, STOP_MSG, strlen(STOP_MSG));
 	return NULL;
