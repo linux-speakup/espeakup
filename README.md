@@ -1,14 +1,16 @@
 # espeakup connector
 
 espeakup is a program which makes it possible for speakup to use
-the espeak software synthesizer.  It does this by reading speakup's
-softsynth device and passing the text to espeak which actually speaks.
+the espeak-ng software synthesizer.  It does this by reading speakup's
+softsynth device and passing the text to espeak-ng which actually speaks.
 
 ## Requirements
 
 This program works with the speakup screen reader, which can be obtained
-from http://linux-speakup.org, and the espeak software speech
-synthesizer which can be obtained from http://espeak.sourceforge.net.
+from http://linux-speakup.org, and the
+[espeak-ng](https://github.com/espeak-ng/espeak-ng) software speech
+synthesizer.
+
 You must have both of these installed and operational.  Setting them up
 is beyond the scope of this document.
 
@@ -47,4 +49,3 @@ authors of Speakup and Espeak, respectively, for their work.
 
 Bugs should be filed on our bug tracker at
 https://github.com/linux-speakup/issues.
-
