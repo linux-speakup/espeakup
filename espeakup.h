@@ -70,7 +70,7 @@ struct synth_t {
 	int range;
 	int punct;
 	int rate;
-	char voice[10];
+	char voice[20];
 	int volume;
 	char *buf;
 	int len;
