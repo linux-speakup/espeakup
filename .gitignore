@@ -1,4 +1,3 @@
 espeakup
-*.d
-*.o
-*.swp
+src/*.d
+src/*.o
