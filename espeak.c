@@ -28,6 +28,7 @@
 /* default voice settings */
 const int defaultFrequency = 5;
 const int defaultPitch = 5;
+const int defaultRange = 5;
 const int defaultRate = 2;
 const int defaultVolume = 5;
 char *defaultVoice = NULL;
@@ -35,6 +36,7 @@ char *defaultVoice = NULL;
 /* multipliers and offsets */
 const int frequencyMultiplier = 11;
 const int pitchMultiplier = 11;
+const int rangeMultiplier = 11;
 const int rateMultiplier = 41;
 const int rateOffset = 80;
 const int volumeMultiplier = 22;
@@ -84,6 +86,21 @@ static espeak_ERROR set_pitch(struct synth_t *s, int pitch,
 	rc = espeak_SetParameter(espeakPITCH, pitch * pitchMultiplier, 0);
 	if (rc == EE_OK)
 		s->pitch = pitch;
+	return rc;
+}
+
+static espeak_ERROR set_range(struct synth_t *s, int range,
+							  enum adjust_t adj)
+{
+	espeak_ERROR rc;
+
+	if (adj == ADJ_DEC)
+		range = -range;
+	if (adj != ADJ_SET)
+		range += s->range;
+	rc = espeak_SetParameter(espeakRANGE, range * rangeMultiplier, 0);
+	if (rc == EE_OK)
+		s->range = range;
 	return rc;
 }
 
@@ -261,6 +278,9 @@ static void queue_process_entry(struct synth_t *s)
 	case CMD_SET_PITCH:
 		error = set_pitch(s, current->value, current->adjust);
 		break;
+	case CMD_SET_RANGE:
+		error = set_range(s, current->value, current->adjust);
+		break;
 	case CMD_SET_PUNCTUATION:
 		error = set_punctuation(s, current->value, current->adjust);
 		break;
@@ -318,6 +338,7 @@ int initialize_espeak(struct synth_t *s)
 	}
 	set_frequency(s, defaultFrequency, ADJ_SET);
 	set_pitch(s, defaultPitch, ADJ_SET);
+	set_range(s, defaultRange, ADJ_SET);
 	set_rate(s, defaultRate, ADJ_SET);
 	set_volume(s, defaultVolume, ADJ_SET);
 	espeak_SetParameter(espeakCAPITALS, 0, 0);
