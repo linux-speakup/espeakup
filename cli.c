@@ -30,11 +30,15 @@ extern char *pidPath;
 /* default voice */
 extern char *defaultVoice;
 
+/* Whether to drive ALSA volume */
+extern int alsaVolume;
+
 /* command line options */
 const char *shortOptions = "P:V:adhv";
 const struct option longOptions[] = {
 	{"pid-path", required_argument, NULL, 'P'},
 	{"default-voice", required_argument, NULL, 'V'},
+	{"alsa-volume", no_argument, &alsaVolume, 1},
 	{"acsint", no_argument, NULL, 'a'},
 	{"debug", no_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
@@ -48,6 +52,7 @@ static void show_help()
 	printf("Options are as follows:\n");
 	printf("  --pid-path=path, -P path\t\tSet path for pid file.\n");
 	printf("  --default-voice=voice, -V voice\tSet default voice.\n");
+	printf("  --alsa-volume\t\t\t\tDrive the ALSA volume.\n");
 	printf("  --debug, -d\t\t\t\tDebug mode (stay in the foreground).\n");
 	printf("  --help, -h\t\t\t\tShow this help.\n");
 	printf("  --version, -v\t\t\t\tDisplay the software version.\n");
@@ -93,6 +98,7 @@ void process_cli(int argc, char **argv)
 			show_version();
 			break;
 		case -1:
+		case 0:
 			break;
 		default:
 			show_help();
