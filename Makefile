@@ -2,9 +2,10 @@ PREFIX = /usr/local
 BINDIR = ${PREFIX}/bin
 MANDIR = ${PREFIX}/share/man
 SRC_DIR = src
-
 DEPFLAGS = -MMD
-WARNFLAGS = -Wall
+WARNFLAGS = -Wall -Wpedantic \
+            -Wextra
+
 CFLAGS += ${DEPFLAGS} ${WARNFLAGS}
 
 LDLIBS = -lespeak-ng -lpthread -lasound -lm
@@ -12,15 +13,11 @@ LDLIBS = -lespeak-ng -lpthread -lasound -lm
 INSTALL = install
 BINMODE = 0755
 MANMODE = 0644
-CHANGELOG_LIMIT?= --after="1 year ago"
 
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard $(SRC_DIR)/*.c))
 
 all: espeakup
-
-changelog:
-	git log ${CHANGELOG_LIMIT} --format=full > ChangeLog
 
 install: espeakup
 	${INSTALL} -d ${DESTDIR}${BINDIR}
