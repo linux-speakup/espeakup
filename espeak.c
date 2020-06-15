@@ -321,7 +321,7 @@ static void reinitialize_espeak(struct synth_t *s)
 	int rate;
 
 	/* Re-initialize espeak */
-	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 50, NULL, 0);
+	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
 	if (rate < 0) {
 		fprintf(stderr, "Unable to initialize espeak.\n");
 		return;
@@ -407,7 +407,7 @@ int initialize_espeak(struct synth_t *s)
 	int rate;
 
 	/* initialize espeak */
-	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 50, NULL, 0);
+	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
 	if (rate < 0) {
 		fprintf(stderr, "Unable to initialize espeak.\n");
 		return -1;
