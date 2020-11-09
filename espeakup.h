@@ -38,6 +38,7 @@ enum espeakup_mode_t {
 
 enum command_t {
 	CMD_SET_FREQUENCY,
+	CMD_SET_MARK,
 	CMD_SET_PITCH,
 	CMD_SET_RANGE,
 	CMD_SET_PUNCTUATION,
@@ -87,6 +88,7 @@ extern void *espeak_thread(void *arg);
 extern int open_softsynth(void);
 extern void close_softsynth(void);
 extern void *softsynth_thread(void *arg);
+extern void softsynth_reportindex(int index);
 extern volatile int should_run;
 extern volatile int stop_requested;
 extern int paused_espeak;

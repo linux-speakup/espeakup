@@ -124,6 +124,9 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		case 'f':
 			cmd = CMD_SET_FREQUENCY;
 			break;
+		case 'i':
+			cmd = CMD_SET_MARK;
+			break;
 		case 'p':
 			cmd = CMD_SET_PITCH;
 			break;
@@ -327,4 +330,17 @@ void *softsynth_thread(void *arg)
 	pthread_cond_signal(&runner_awake);
 	pthread_mutex_unlock(&queue_guard);
 	return NULL;
+}
+
+void softsynth_reportindex(int index)
+{
+	if (espeakup_mode == ESPEAKUP_MODE_ACSINT) {
+		putchar(index);
+		fflush(stdout);
+	} else {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", index);
+		if (write(softFD, buf, strlen(buf)) < 0)
+			perror("Writing index failed");
+	}
 }

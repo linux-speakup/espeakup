@@ -47,7 +47,7 @@ const int volumeMultiplier = 22;
 volatile int stop_requested = 0;
 int paused_espeak = 1;
 
-static int acsint_callback(short *wav, int numsamples, espeak_EVENT * events)
+static int callback(short *wav, int numsamples, espeak_EVENT * events)
 {
 	int i;
 	for (i = 0; events[i].type !=  espeakEVENT_LIST_TERMINATED; i++) {
@@ -55,8 +55,7 @@ static int acsint_callback(short *wav, int numsamples, espeak_EVENT * events)
 			int mark = atoi(events[i].id.name);
 			if ((mark < 0) || (mark > 255))
 				continue;
-			putchar(mark);
-			fflush(stdout);
+			softsynth_reportindex(mark);
 		}
 	}
 	return 0;
@@ -327,9 +326,7 @@ static void reinitialize_espeak(struct synth_t *s)
 		return;
 	}
 
-	/* We need a callback in acsint mode, but not in speakup mode. */
-	if (espeakup_mode == ESPEAKUP_MODE_ACSINT)
-		espeak_SetSynthCallback(acsint_callback);
+	espeak_SetSynthCallback(callback);
 
 	/* Set parameters again */
 	espeak_SetVoiceByName(s->voice);
@@ -345,6 +342,7 @@ static void reinitialize_espeak(struct synth_t *s)
 static void queue_process_entry(struct synth_t *s)
 {
 	espeak_ERROR error;
+	char markbuff[50];
 	static struct espeak_entry_t *current = NULL;
 
 	if (current != queue_peek(synth_queue)) {
@@ -361,6 +359,11 @@ static void queue_process_entry(struct synth_t *s)
 	switch (current->cmd) {
 	case CMD_SET_FREQUENCY:
 		error = set_frequency(s, current->value, current->adjust);
+		break;
+	case CMD_SET_MARK:
+		snprintf(markbuff, sizeof(markbuff), "<mark name=\"%d\"/>", current->value);
+		error = espeak_Synth(markbuff, strlen(markbuff)+1, 0, POS_CHARACTER,
+				     0, espeakSSML, NULL, NULL);
 		break;
 	case CMD_SET_PITCH:
 		error = set_pitch(s, current->value, current->adjust);
@@ -413,9 +416,7 @@ int initialize_espeak(struct synth_t *s)
 		return -1;
 	}
 
-	/* We need a callback in acsint mode, but not in speakup mode. */
-	if (espeakup_mode == ESPEAKUP_MODE_ACSINT)
-		espeak_SetSynthCallback(acsint_callback);
+	espeak_SetSynthCallback(callback);
 
 	/* Setup initial voice parameters */
 	if (defaultVoice && defaultVoice[0]) {
