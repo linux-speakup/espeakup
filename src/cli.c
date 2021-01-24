@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "espeakup.h"
+#include "version.h"
 
 /* pid path */
 extern char *pidPath;

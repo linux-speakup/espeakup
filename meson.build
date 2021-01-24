@@ -13,6 +13,7 @@ subdir('src')
 
 executable('espeakup',
            espeakup_sources,
+           espeakup_version,
            include_directories : espeakup_incdir,
            dependencies : [thread_dep, espeak_dep, alsa_dep, m_dep],
            install : true)
