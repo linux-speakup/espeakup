@@ -9,16 +9,10 @@ espeak_dep = dependency('espeak-ng')
 alsa_dep = dependency('alsa')
 m_dep = cc.find_library('m', required : false)
 
+subdir('src')
+
 executable('espeakup',
-           'src/cli.c',
-           'src/espeak.c',
-           'src/espeakup.c',
-           'src/espeakup.h',
-           'src/queue.c',
-           'src/queue.h',
-           'src/signal.c',
-           'src/softsynth.c',
-           'src/stringhandling.c',
-           'src/stringhandling.h',
+           espeakup_sources,
+           include_directories : espeakup_incdir,
            dependencies : [thread_dep, espeak_dep, alsa_dep, m_dep],
            install : true)
