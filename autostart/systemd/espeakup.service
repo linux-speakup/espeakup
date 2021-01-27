@@ -1,6 +1,6 @@
 [Unit]
 Description=Software speech output for Speakup
-# espeakup needs to start after the audio devices appear, hopefully this should go away in the future
+Documentation=man:espeakup(8)
 Wants=systemd-udev-settle.service
 After=systemd-udev-settle.service sound.target
 
