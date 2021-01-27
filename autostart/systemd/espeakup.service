@@ -8,8 +8,9 @@ After=systemd-udev-settle.service sound.target
 Type=forking
 EnvironmentFile=/etc/conf.d/espeakup
 PIDFile=/run/espeakup.pid
+ExecStartPre=+/sbin/modprobe speakup_soft
 ExecStart=/usr/bin/espeakup --default-voice=${default_voice}
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=kill -HUP $MAINPID
 Restart=always
 
 [Install]
