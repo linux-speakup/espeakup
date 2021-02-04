@@ -1,6 +1,6 @@
 project('espeakup', 'c',
-  version : '0.82',
-  license : 'GPL-3.0+',
+  version : '0.81',
+  license : 'GPL-3.0-or-later',
   default_options : ['buildtype=debugoptimized', 'c_std=gnu11', 'warning_level=3'])
 
 cc = meson.get_compiler('c')
