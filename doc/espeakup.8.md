@@ -1,82 +1,88 @@
 ---
-date: 5 Nov 2008
-section: 8
 title: ESPEAKUP
+section: 8
+date: 14 Jun 2021
 ---
+<!-- markdownlint-disable MD036 -->
 
-# NAME
+## NAME
 
-espeakup --- connect Speakup to the ESpeak TTS engine
+espeakup --- connect Speakup to the espeak-ng TTS engine
 
-# SYNOPSIS
+## SYNOPSIS
 
-**espeakup** \[ **- -pid-path=path** \] \[
-**- -default-voice=voicename** \] \[ **- -debug** \] \[ **- -help** \]
-\[ **- -version** \]
+**espeakup** \[**\--pid-path=path**\] \[**\--alsa-volume**\]
+\[**\--default-voice=voicename**\] \[**\--debug**\] \[**\--help**\]
+\[**\--version**\]
 
-# OPTIONS
+## OPTIONS
 
-**-P path, - -pid-path=path**
+**-P path, \--pid-path=path**
 
-:   Set the full path for the pid file espeakup uses when in daemon
-    mode.
+:   Set the full path for the pid file espeakup uses when in daemon mode.
 
-**-V voicename, - -default-voice=voicename**
+**\--alsa-volume**
 
-:   Set the espeak voice to be used by default.
+:   Drive the ALSA volume. useful for live environments where volume
+    adjustments maybe impossible.
 
-**-d, - -debug**
+**-V voicename, \--default-voice=voicename**
+
+:   Set the espeak-ng voice to be used by default.
+
+**-d, \--debug**
 
 :   run in the foreground, rather than becoming a daemon process.
 
-**-h, - -help**
+**-h, \--help**
 
 :   display a brief help message and exit.
 
-**-v, - -version**
+**-v, \--version**
 
 :   output version information and exit.
 
-# DESCRIPTION
+## DESCRIPTION
 
-Espeakup bridges the gap between two tools: the Speakup screen review
-system and the ESppeak text-to-speech engine. Each of these tools
+espeakup bridges the gap between two tools: the Speakup screen review
+system and the espeak-ng text-to-speech engine. Each of these tools
 performs a well-defined task. Speakup is a kernel-based screen reader
 for the Linux console. It extracts and processes the text that is
 displayed on the foreground virtual console. It supports several
 hardware based speech synthesizers directly. However, since it is in
 kernel space, it cannot support a software speech synthesizer directly
-since these are in user space. ESpeak is a popular software speech
+since these are in user space. espeak-ng is a popular software speech
 synthesizer. It is small, light weight, very responsive, and supports
-multiple languages. Espeakup is a connector which will read text sent to
-it by speakup and forward it to ESpeak. This allows Speakup to use
-ESpeak as its speech synthesizer.
+multiple languages. espeakup is a connector which will read text sent to
+it by speakup and forward it to espeak-ng. This allows Speakup to use
+espeak-ng as its speech synthesizer.
 
-Espeakup is a daemon. Typically, it is started at boot time, and it
+espeakup is a daemon. Typically, it is started at boot time, and it
 terminates when the system is halted or rebooted. It should be started
-by the system\'s init scripts. This process varies among Linux
+by the system's init scripts. This process varies among Linux
 distributions, but the details are usually managed by the person who
-packaged Espeakup for your distribution. From the perspective of an
-average user, Espeakup\'s operation is invisible.
+packaged espeakup for your distribution. From the perspective of an
+average user, espeakup's operation is invisible.
 
-# BUGS
+## BUGS
 
-Espeakup is still classified as alpha software. Bugs are periodically
-found and fixed. If you find a bug, please do report it to the author.
-You might also consider mentioning it on the mailing list for the
-Speakup screenreader. Visit
-http://speech.braille.uwo.ca/mailman/listinfo/speakup to learn more
-about the mailing list.
+If you find a bug, please create an
+[github issue](https://github.com/linux-speakup/espeakup/issues)
+You might also consider mentioning it on the mailing list for the Speakup screenreader. Visit
+[list page](https://linux-speakup.org/cgi-bin/mailman/listinfo/speakup)
+to learn more about the mailing list.
 
-# SEE ALSO
+## SEE ALSO
 
-For more information about Speakup, visit its homepage:
-http://linux-speakup.org. ESpeak\'s home page is
-http://espeak.sourceforge.net.
+For more information about Speakup, visit its
+[homepage](https://linux-speakup.org).
 
-# AUTHOR
+espeak-ng located at [github](https://github.com/espeak-ng/espeak-ng)
 
-William Hubbs is the author and maintainer of Espeakup. He may be
-reached via the email address \<w.d.hubbs\@gmail.com>. This manual page
-was written by Chris Brannon, and his email address is
-\<cmbrannon79\@gmail.com>.
+## AUTHOR
+
+William Hubbs <w.d.hubbs@gmail.com> is the author of espeakup.
+This manual page was written by Chris Brannon <cmbrannon79@gmail.com>.
+
+current authors and maintainers can be found at
+[github](https://github.com/linux-speakup/espeakup/graphs/contributors)
