@@ -39,6 +39,7 @@ enum espeakup_mode_t {
 enum command_t {
 	CMD_SET_FREQUENCY,
 	CMD_SET_PITCH,
+	CMD_SET_RANGE,
 	CMD_SET_PUNCTUATION,
 	CMD_SET_RATE,
 	CMD_SET_VOICE,
@@ -66,6 +67,7 @@ struct espeak_entry_t {
 struct synth_t {
 	int frequency;
 	int pitch;
+	int range;
 	int punct;
 	int rate;
 	char voice[10];

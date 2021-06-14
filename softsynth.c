@@ -127,6 +127,9 @@ static int process_command(struct synth_t *s, char *buf, int start)
 		case 'p':
 			cmd = CMD_SET_PITCH;
 			break;
+		case 'r':
+			cmd = CMD_SET_RANGE;
+			break;
 		case 's':
 			cmd = CMD_SET_RATE;
 			break;
