@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <alsa/asoundlib.h>
+#include <math.h>
 
 #include "espeakup.h"
 
@@ -32,6 +34,7 @@ const int defaultRange = 5;
 const int defaultRate = 2;
 const int defaultVolume = 5;
 char *defaultVoice = NULL;
+int alsaVolume = 0;
 
 /* multipliers and offsets */
 const int frequencyMultiplier = 11;
@@ -152,6 +155,86 @@ static espeak_ERROR set_voice(struct synth_t *s, char *voice)
 	return rc;
 }
 
+static void set_alsa_volume(int vol)
+{
+	snd_mixer_t *m;
+	snd_mixer_elem_t *e;
+	int err;
+
+	err = snd_mixer_open(&m, 0);
+	if (err < 0)
+	{
+		fprintf(stderr, "ALSA mixer open error: %s\n", snd_strerror(err));
+		return;
+	}
+
+	err = snd_mixer_attach(m, "default");
+	if (err < 0)
+	{
+		fprintf(stderr, "ALSA mixer attach error: %s\n", snd_strerror(err));
+		return;
+	}
+	err = snd_mixer_selem_register(m, NULL, NULL);
+	if (err < 0)
+	{
+		fprintf(stderr, "ALSA mixer load error: %s\n", snd_strerror(err));
+		return;
+	}
+	err = snd_mixer_load(m);
+	if (err < 0)
+	{
+		fprintf(stderr, "ALSA mixer load error: %s\n", snd_strerror(err));
+		return;
+	}
+
+	/* Turn vol value to volume %.
+	 * We do not want to soften that much with ALSA, espeak is already
+	 * doing it. We want the default value (5) to be the usual default
+	 * volume (80%), and make higher values increase ALSA volume, up to
+	 * 100%. */
+
+	int volume = (vol+1) * 50 / 10 + 50;
+
+	for (e = snd_mixer_first_elem(m); e; e = snd_mixer_elem_next(e))
+	{
+		if (snd_mixer_elem_get_type(e) != SND_MIXER_ELEM_SIMPLE)
+			continue;
+		if (snd_mixer_selem_is_enumerated(e))
+			continue;
+
+		if (snd_mixer_selem_has_playback_switch(e)) {
+			snd_mixer_selem_set_playback_switch_all(e, 1);
+		}
+
+		if (snd_mixer_selem_has_playback_volume(e)) {
+			long min, max, set;
+
+			err = snd_mixer_selem_get_playback_dB_range(e, &min, &max);
+			if (err == 0 && min < max) {
+				if (max - min < 2400) {
+					/* 24dB amplitude is too small for using a logscale */
+					set = min + volume * (max-min) / 100;
+				} else {
+					/* Use a logscale */
+					double volf = volume / 100.;
+					if (min != SND_CTL_TLV_DB_GAIN_MUTE)
+					{
+						double minf = pow(10, (min-max) / 6000.);
+						volf = volf * (1 - minf) + minf;
+					}
+					set = 6000. * log10(volf) + max;
+				}
+				snd_mixer_selem_set_playback_dB_all(e, set, 0);
+			} else {
+				/* No dB setting, try a linear scale */
+				snd_mixer_selem_get_playback_volume_range(e, &min, &max);
+				set = min + volume * (max-min) / 100;
+				snd_mixer_selem_set_playback_volume_all(e, set);
+			}
+		}
+	}
+}
+
 static espeak_ERROR set_volume(struct synth_t *s, int vol,
 							   enum adjust_t adj)
 {
@@ -164,7 +247,11 @@ static espeak_ERROR set_volume(struct synth_t *s, int vol,
 	rc = espeak_SetParameter(espeakVOLUME, (vol + 1) * volumeMultiplier,
 							 0);
 	if (rc == EE_OK)
+	{
 		s->volume = vol;
+		if (alsaVolume)
+			set_alsa_volume(vol);
+	}
 
 	return rc;
 }
