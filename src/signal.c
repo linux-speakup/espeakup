@@ -1,5 +1,5 @@
 /*
- *  espeakup - interface which allows speakup to use espeak
+ *  espeakup - interface which allows speakup to use espeak-ng
  *
  *  Copyright (C) 2008 William Hubbs
  *
@@ -21,9 +21,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#define STOP_MSG "s"
 
 #include "espeakup.h"
+
+#define STOP_MSG "s"
 
 /*
  * We install a dummy signal handler to let the o/s know that we
@@ -41,7 +42,7 @@ void *signal_thread(void *arg)
 	int sig;
 
 	memset(&temp, 0, sizeof(struct sigaction));
-	/* install dummy handlers for the signals we want to process */
+	// install dummy handlers for the signals we want to process
 	temp.sa_handler = dummy_handler;
 	sigemptyset(&temp.sa_mask);
 	sigaction(SIGINT, &temp, NULL);
@@ -66,7 +67,7 @@ void *signal_thread(void *arg)
 		pthread_mutex_lock(&queue_guard);
 	}
 	pthread_mutex_unlock(&queue_guard);
-	/* Tell the reader to stop, if it is in a select() call. */
+	// Tell the reader to stop, if it is in a select() call.
 	write(PIPE_WRITE_FD, STOP_MSG, strlen(STOP_MSG));
 	return NULL;
 }
