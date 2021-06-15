@@ -1,5 +1,5 @@
 /*
- *  espeakup - interface which allows speakup to use espeak
+ *  espeakup - interface which allows speakup to use espeak-ng
  *
  *  Copyright (C) 2008 William Hubbs
  *
@@ -20,7 +20,7 @@
 #ifndef __ESPEAKUP_H
 #define __ESPEAKUP_H
 
-/* This was added for gcc 4.3 */
+// This was added for gcc 4.3
 #include <pthread.h>
 #include <stddef.h>
 

@@ -1,5 +1,5 @@
 /*
- *  espeakup - interface which allows speakup to use espeak
+ *  espeakup - interface which allows speakup to use espeak-ng
  *
  * Note that these functions are meant to be used in either a single or
  * multi-threaded environment, so they know nothing about mutexes, etc.

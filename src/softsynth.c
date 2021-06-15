@@ -1,5 +1,5 @@
 /*
- *  espeakup - interface which allows speakup to use espeak
+ *  espeakup - interface which allows speakup to use espeak-ng
  *
  *  Copyright (C) 2008 William Hubbs
  *
@@ -29,15 +29,15 @@
 #include "espeakup.h"
 #include "stringhandling.h"
 
-/* max buffer size */
+// max buffer size
 static const size_t maxBufferSize = 16 * 1024 + 1;
 
-/* synth flush character */
+// synth flush character
 static const int synthFlushChar = 0x18;
 
 static int softFD = 0;
 
-/* Text accumulator: */
+// Text accumulator:
 char *textAccumulator;
 int textAccumulator_l;
 
@@ -227,26 +227,26 @@ static void request_espeak_stop(void)
 {
 	pthread_mutex_lock(&queue_guard);
 	stop_requested = 1;
-	pthread_cond_signal(&runner_awake); /* Wake runner, if necessary. */
+	pthread_cond_signal(&runner_awake);     // Wake runner, if necessary.
 	while (should_run && stop_requested)
-		pthread_cond_wait(&stop_acknowledged,
-		                  &queue_guard); /* wait for acknowledgement. */
+		// wait for acknowledgement.
+		pthread_cond_wait(&stop_acknowledged, &queue_guard);
 	pthread_mutex_unlock(&queue_guard);
 }
 
 int open_softsynth(void)
 {
 	int rc = 0;
-	/* If we're in acsint mode, we read from stdin.  No need to open. */
+	// If we're in acsint mode, we read from stdin.  No need to open.
 	if (espeakup_mode == ESPEAKUP_MODE_ACSINT) {
 		softFD = STDIN_FILENO;
 		return 0;
 	}
 
-	/* open the softsynth. */
+	// open the softsynth.
 	softFD = open("/dev/softsynthu", O_RDWR | O_NONBLOCK);
 	if (softFD < 0 && errno == ENOENT)
-		/* Kernel without unicode support?  Try without unicode.  */
+		// Kernel without unicode support? Try without unicode.
 		softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0) {
 		perror("Unable to open the softsynth device");

@@ -1,5 +1,5 @@
 /*
- *  espeakup - interface which allows speakup to use espeak
+ *  espeakup - interface which allows speakup to use espeak-ng
  *
  *  Copyright (C) 2008 William Hubbs
  *

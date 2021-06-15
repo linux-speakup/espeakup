@@ -1,5 +1,5 @@
 /*
- *  espeakup - interface which allows speakup to use espeak
+ *  espeakup - interface which allows speakup to use espeak-ng
  *
  *  Copyright (C) 2011 William Hubbs
  *
@@ -75,9 +75,9 @@ void stringAndString(char **s, int *l, const char *t)
 	oldlen = *l;
 	newlen = oldlen + strlen(t);
 	*l = newlen;
-	++newlen; /* room for the 0 */
+	++newlen;     // room for the 0
 	x = oldlen ^ newlen;
-	if (x > oldlen) { /* must realloc */
+	if (x > oldlen) {     // must realloc
 		newlen |= (newlen >> 1);
 		newlen |= (newlen >> 2);
 		newlen |= (newlen >> 4);
@@ -98,7 +98,7 @@ void stringAndBytes(char **s, int *l, const char *t, int cnt)
 	*l = newlen;
 	++newlen;
 	x = oldlen ^ newlen;
-	if (x > oldlen) { /* must realloc */
+	if (x > oldlen) {     // must realloc
 		newlen |= (newlen >> 1);
 		newlen |= (newlen >> 2);
 		newlen |= (newlen >> 4);
