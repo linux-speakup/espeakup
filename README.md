@@ -18,9 +18,15 @@ is beyond the scope of this document.
 
 The preferred way to install espeakup is using your distribution's
 packaging system, but if your distribution does not have a package for
-espeakup yet, espeakup just uses a Makefile, so you should be able to
-change to the source directory, then type make, then as root, make
-install.
+espeakup yet, espeakup just uses meson, so you should be able to
+change to the source directory, then type:
+
+```bash
+meson . ./build
+cd ./build
+ninja
+sudo ninja install
+```
 
 ## Starting Up
 
