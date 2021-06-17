@@ -1,11 +1,8 @@
-pandoc = find_program('pandoc', required: false)
+ronn = find_program('ronn', required: get_option('man'))
 
-if pandoc.found()
-  custom_target('espeakup-man', input:files('espeakup.8.md'), output:'espeakup.8',
-    command:[pandoc, '--standalone', '--from', 'markdown', '--to', 'man',
-                    '--shift-heading-level-by=-1', '--output', '@OUTPUT@',
-                    '@INPUT@'],
-    install: true, install_dir: join_paths(get_option('mandir'),'man8'))
-else
-  warning('Program "pandoc" not found!  Cannot generate man pages')
+if ronn.found()
+    custom_target('man', input:files('espeakup.8.ronn'),
+        output:'espeakup.8',
+        command:[ronn, '--output-dir', '@OUTDIR@', '--roff', '@INPUT@'],
+        install: true, install_dir: join_paths(get_option('mandir'),'man8'))
 endif
