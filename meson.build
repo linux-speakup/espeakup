@@ -10,13 +10,12 @@ espeak_dep = dependency('espeak-ng')
 alsa_dep = dependency('alsa')
 math_dep = cc.find_library('m', required : false)
 
-subdir('src')
 subdir('doc')
 subdir('services')
+subdir('src')
 
 executable('espeakup',
-           espeakup_sources,
            espeakup_version,
-           include_directories : espeakup_incdir,
+           espeakup_sources,
            dependencies : [thread_dep, espeak_dep, alsa_dep, math_dep],
            install : true)

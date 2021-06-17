@@ -1,6 +1,5 @@
-espeakup_incdir = include_directories('include')
+espeakup_version = vcs_tag(input : 'version.h.in', output : 'version.h')
 
-subdir('include')
 
 espeakup_sources = files([
         'cli.c',
