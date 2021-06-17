@@ -21,8 +21,8 @@
 #define __ESPEAKUP_H
 
 /* This was added for gcc 4.3 */
-#include <stddef.h>
 #include <pthread.h>
+#include <stddef.h>
 
 #include <espeak-ng/speak_lib.h>
 
@@ -30,12 +30,14 @@
 
 #define PACKAGE_BUGREPORT "https://github.com/linux-speakup/espeakup/issues"
 
-enum espeakup_mode_t {
+enum espeakup_mode_t
+{
 	ESPEAKUP_MODE_SPEAKUP,
 	ESPEAKUP_MODE_ACSINT
 };
 
-enum command_t {
+enum command_t
+{
 	CMD_SET_FREQUENCY,
 	CMD_SET_MARK,
 	CMD_SET_PITCH,
@@ -50,7 +52,8 @@ enum command_t {
 	CMD_UNKNOWN,
 };
 
-enum adjust_t {
+enum adjust_t
+{
 	ADJ_DEC,
 	ADJ_SET,
 	ADJ_INC,

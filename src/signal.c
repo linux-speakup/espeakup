@@ -40,7 +40,7 @@ void *signal_thread(void *arg)
 	sigset_t sigset;
 	int sig;
 
-	memset(&temp, 0, sizeof (struct sigaction));
+	memset(&temp, 0, sizeof(struct sigaction));
 	/* install dummy handlers for the signals we want to process */
 	temp.sa_handler = dummy_handler;
 	sigemptyset(&temp.sa_mask);

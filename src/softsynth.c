@@ -17,14 +17,14 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/select.h>
 #include <string.h>
-#include <ctype.h>
+#include <sys/select.h>
+#include <unistd.h>
 
 #include "espeakup.h"
 #include "stringhandling.h"
@@ -155,8 +155,7 @@ static int process_command(struct synth_t *s, char *buf, int start)
 	}
 
 	if (cmd != CMD_FLUSH && cmd != CMD_UNKNOWN) {
-		if (espeakup_mode == ESPEAKUP_MODE_ACSINT
-			&& textAccumulator_l != 0) {
+		if (espeakup_mode == ESPEAKUP_MODE_ACSINT && textAccumulator_l != 0) {
 			queue_add_text(textAccumulator, textAccumulator_l);
 			free(textAccumulator);
 			textAccumulator = initString(&textAccumulator_l);
@@ -177,7 +176,8 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	start = 0;
 	end = 0;
 	while (start < length) {
-		while ((buf[end] < 0 || buf[end] >= ' ' || buf[end] == '\n') && end < length)
+		while ((buf[end] < 0 || buf[end] >= ' ' || buf[end] == '\n') &&
+		       end < length)
 			end++;
 		if (end != start) {
 			txtLen = end - start;
@@ -192,8 +192,7 @@ static void process_buffer(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
-static void process_buffer_acsint(struct synth_t *s, char *buf,
-								  ssize_t length)
+static void process_buffer_acsint(struct synth_t *s, char *buf, ssize_t length)
 {
 	int start = 0;
 	int i;
@@ -207,8 +206,8 @@ static void process_buffer_acsint(struct synth_t *s, char *buf,
 				break;
 		}
 		if (i > start)
-			stringAndBytes(&textAccumulator, &textAccumulator_l,
-						   buf + start, i - start);
+			stringAndBytes(&textAccumulator, &textAccumulator_l, buf + start,
+			               i - start);
 		if (flushIt) {
 			if (textAccumulator != EMPTYSTRING) {
 				queue_add_text(textAccumulator, textAccumulator_l);
@@ -228,9 +227,10 @@ static void request_espeak_stop(void)
 {
 	pthread_mutex_lock(&queue_guard);
 	stop_requested = 1;
-	pthread_cond_signal(&runner_awake);	/* Wake runner, if necessary. */
+	pthread_cond_signal(&runner_awake); /* Wake runner, if necessary. */
 	while (should_run && stop_requested)
-		pthread_cond_wait(&stop_acknowledged, &queue_guard);	/* wait for acknowledgement. */
+		pthread_cond_wait(&stop_acknowledged,
+		                  &queue_guard); /* wait for acknowledgement. */
 	pthread_mutex_unlock(&queue_guard);
 }
 

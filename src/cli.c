@@ -44,8 +44,7 @@ const struct option longOptions[] = {
 	{"debug", no_argument, NULL, 'd'},
 	{"help", no_argument, NULL, 'h'},
 	{"version", no_argument, NULL, 'v'},
-	{0, 0, 0, 0}
-};
+	{0, 0, 0, 0}};
 
 static void show_help()
 {
