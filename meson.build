@@ -1,7 +1,8 @@
 project('espeakup', 'c',
-  version : '0.81',
+  default_options : ['buildtype=debugoptimized', 'c_std=gnu11', 'warning_level=3'],
   license : 'GPL-3.0-or-later',
-  default_options : ['buildtype=debugoptimized', 'c_std=gnu11', 'warning_level=3'])
+  version : '0.81',
+  meson_version : '>=0.47.0')
 
 cc = meson.get_compiler('c')
 thread_dep = dependency('threads')

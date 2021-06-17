@@ -1,0 +1,2 @@
+option('systemd', type : 'feature', value : 'auto',
+       description :'enable systemd support')
