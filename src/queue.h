@@ -20,7 +20,7 @@
 #ifndef __QUEUE_H
 #define __QUEUE_H
 
-struct queue_t;					/* An opaque type. */
+struct queue_t; /* An opaque type. */
 
 extern struct queue_t *new_queue(void);
 extern int queue_add(struct queue_t *q, void *entry);

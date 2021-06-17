@@ -18,13 +18,13 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/file.h>
+#include <unistd.h>
 
 #include "espeakup.h"
 
@@ -78,7 +78,7 @@ int espeakup_start_daemon(void)
 	/* Child */
 	if (chdir("/") < 0) {
 		c = 1;
-		(void)write(fds[1], &c, 1);
+		(void) write(fds[1], &c, 1);
 		exit(1);
 	}
 	return fds[1];
@@ -99,14 +99,12 @@ int espeakup_is_running(void)
 	}
 
 	if (flock(pidFile, LOCK_EX) < 0) {
-		printf("Can not lock the pid file %s: %s\n", pidPath,
-		       strerror(errno));
+		printf("Can not lock the pid file %s: %s\n", pidPath, strerror(errno));
 		goto error;
 	}
 	n = read(pidFile, s, sizeof(s) - 1);
 	if (n < 0) {
-		printf("Can not read the pid file %s: %s\n", pidPath,
-		       strerror(errno));
+		printf("Can not read the pid file %s: %s\n", pidPath, strerror(errno));
 		goto error;
 	}
 	s[n] = 0;
@@ -197,13 +195,13 @@ int main(int argc, char **argv)
 	sigaddset(&sigset, SIGTERM);
 	sigprocmask(SIG_BLOCK, &sigset, NULL);
 
-/* Initialize espeak */
+	/* Initialize espeak */
 	if (initialize_espeak(&s) < 0) {
 		ret = 2;
 		goto out;
 	}
 
-/* open the softsynth */
+	/* open the softsynth */
 	if (open_softsynth() < 0) {
 		ret = 2;
 		goto out;
@@ -224,7 +222,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!debug && espeakup_mode == ESPEAKUP_MODE_SPEAKUP)
-		(void)write(fd, &ret, 1);
+		(void) write(fd, &ret, 1);
 
 	/* wait for the threads to shut down. */
 	pthread_join(signal_thread_id, NULL);
@@ -240,7 +238,7 @@ out:
 		if (ret != 1)
 			unlink(pidPath);
 		if (ret != 0)
-			(void)write(fd, &ret, 1);
+			(void) write(fd, &ret, 1);
 		/* If ret was 0, the status byte was written before joining
 		 * the threads. */
 	}

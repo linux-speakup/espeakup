@@ -18,12 +18,12 @@
  */
 
 #define _GNU_SOURCE
+#include <alsa/asoundlib.h>
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alsa/asoundlib.h>
-#include <math.h>
 
 #include "espeakup.h"
 
@@ -47,10 +47,10 @@ const int volumeMultiplier = 22;
 volatile int stop_requested = 0;
 int paused_espeak = 1;
 
-static int callback(short *wav, int numsamples, espeak_EVENT * events)
+static int callback(short *wav, int numsamples, espeak_EVENT *events)
 {
 	int i;
-	for (i = 0; events[i].type !=  espeakEVENT_LIST_TERMINATED; i++) {
+	for (i = 0; events[i].type != espeakEVENT_LIST_TERMINATED; i++) {
 		if (events[i].type == espeakEVENT_MARK) {
 			int mark = atoi(events[i].id.name);
 			if ((mark < 0) || (mark > 255))
@@ -62,7 +62,7 @@ static int callback(short *wav, int numsamples, espeak_EVENT * events)
 }
 
 static espeak_ERROR set_frequency(struct synth_t *s, int freq,
-								  enum adjust_t adj)
+                                  enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -76,8 +76,7 @@ static espeak_ERROR set_frequency(struct synth_t *s, int freq,
 	return rc;
 }
 
-static espeak_ERROR set_pitch(struct synth_t *s, int pitch,
-							  enum adjust_t adj)
+static espeak_ERROR set_pitch(struct synth_t *s, int pitch, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -91,8 +90,7 @@ static espeak_ERROR set_pitch(struct synth_t *s, int pitch,
 	return rc;
 }
 
-static espeak_ERROR set_range(struct synth_t *s, int range,
-							  enum adjust_t adj)
+static espeak_ERROR set_range(struct synth_t *s, int range, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -107,7 +105,7 @@ static espeak_ERROR set_range(struct synth_t *s, int range,
 }
 
 static espeak_ERROR set_punctuation(struct synth_t *s, int punct,
-									enum adjust_t adj)
+                                    enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -121,8 +119,7 @@ static espeak_ERROR set_punctuation(struct synth_t *s, int punct,
 	return rc;
 }
 
-static espeak_ERROR set_rate(struct synth_t *s, int rate,
-							 enum adjust_t adj)
+static espeak_ERROR set_rate(struct synth_t *s, int rate, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -130,8 +127,7 @@ static espeak_ERROR set_rate(struct synth_t *s, int rate,
 		rate = -rate;
 	if (adj != ADJ_SET)
 		rate += s->rate;
-	rc = espeak_SetParameter(espeakRATE,
-							 rate * rateMultiplier + rateOffset, 0);
+	rc = espeak_SetParameter(espeakRATE, rate * rateMultiplier + rateOffset, 0);
 	if (rc == EE_OK)
 		s->rate = rate;
 	return rc;
@@ -143,8 +139,7 @@ static espeak_ERROR set_voice(struct synth_t *s, char *voice)
 	espeak_VOICE voice_select;
 
 	rc = espeak_SetVoiceByName(voice);
-	if (rc != EE_OK)
-	{
+	if (rc != EE_OK) {
 		memset(&voice_select, 0, sizeof(voice_select));
 		voice_select.languages = voice;
 		rc = espeak_SetVoiceByProperties(&voice_select);
@@ -161,27 +156,23 @@ static void set_alsa_volume(int vol)
 	int err;
 
 	err = snd_mixer_open(&m, 0);
-	if (err < 0)
-	{
+	if (err < 0) {
 		fprintf(stderr, "ALSA mixer open error: %s\n", snd_strerror(err));
 		return;
 	}
 
 	err = snd_mixer_attach(m, "default");
-	if (err < 0)
-	{
+	if (err < 0) {
 		fprintf(stderr, "ALSA mixer attach error: %s\n", snd_strerror(err));
 		return;
 	}
 	err = snd_mixer_selem_register(m, NULL, NULL);
-	if (err < 0)
-	{
+	if (err < 0) {
 		fprintf(stderr, "ALSA mixer load error: %s\n", snd_strerror(err));
 		return;
 	}
 	err = snd_mixer_load(m);
-	if (err < 0)
-	{
+	if (err < 0) {
 		fprintf(stderr, "ALSA mixer load error: %s\n", snd_strerror(err));
 		return;
 	}
@@ -192,10 +183,9 @@ static void set_alsa_volume(int vol)
 	 * volume (80%), and make higher values increase ALSA volume, up to
 	 * 100%. */
 
-	int volume = (vol+1) * 50 / 10 + 50;
+	int volume = (vol + 1) * 50 / 10 + 50;
 
-	for (e = snd_mixer_first_elem(m); e; e = snd_mixer_elem_next(e))
-	{
+	for (e = snd_mixer_first_elem(m); e; e = snd_mixer_elem_next(e)) {
 		if (snd_mixer_elem_get_type(e) != SND_MIXER_ELEM_SIMPLE)
 			continue;
 		if (snd_mixer_selem_is_enumerated(e))
@@ -212,13 +202,12 @@ static void set_alsa_volume(int vol)
 			if (err == 0 && min < max) {
 				if (max - min < 2400) {
 					/* 24dB amplitude is too small for using a logscale */
-					set = min + volume * (max-min) / 100;
+					set = min + volume * (max - min) / 100;
 				} else {
 					/* Use a logscale */
 					double volf = volume / 100.;
-					if (min != SND_CTL_TLV_DB_GAIN_MUTE)
-					{
-						double minf = pow(10, (min-max) / 6000.);
+					if (min != SND_CTL_TLV_DB_GAIN_MUTE) {
+						double minf = pow(10, (min - max) / 6000.);
 						volf = volf * (1 - minf) + minf;
 					}
 					set = 6000. * log10(volf) + max;
@@ -227,15 +216,14 @@ static void set_alsa_volume(int vol)
 			} else {
 				/* No dB setting, try a linear scale */
 				snd_mixer_selem_get_playback_volume_range(e, &min, &max);
-				set = min + volume * (max-min) / 100;
+				set = min + volume * (max - min) / 100;
 				snd_mixer_selem_set_playback_volume_all(e, set);
 			}
 		}
 	}
 }
 
-static espeak_ERROR set_volume(struct synth_t *s, int vol,
-							   enum adjust_t adj)
+static espeak_ERROR set_volume(struct synth_t *s, int vol, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
@@ -243,10 +231,8 @@ static espeak_ERROR set_volume(struct synth_t *s, int vol,
 		vol = -vol;
 	if (adj != ADJ_SET)
 		vol += s->volume;
-	rc = espeak_SetParameter(espeakVOLUME, (vol + 1) * volumeMultiplier,
-							 0);
-	if (rc == EE_OK)
-	{
+	rc = espeak_SetParameter(espeakVOLUME, (vol + 1) * volumeMultiplier, 0);
+	if (rc == EE_OK) {
 		s->volume = vol;
 		if (alsaVolume)
 			set_alsa_volume(vol);
@@ -276,24 +262,24 @@ static espeak_ERROR speak_text(struct synth_t *s)
 		int n;
 		if (s->buf[0] == ' ')
 			n = asprintf(&buf,
-				     "<say-as interpret-as=\"tts:char\">&#32;</say-as>");
+			             "<say-as interpret-as=\"tts:char\">&#32;</say-as>");
 		else
 			n = asprintf(&buf,
-				     "<say-as interpret-as=\"characters\">%c</say-as>",
-				     s->buf[0]);
+			             "<say-as interpret-as=\"characters\">%c</say-as>",
+			             s->buf[0]);
 		if (n == -1) {
 			/* D'oh.  Not much to do on allocation failure.
 			 * Perhaps espeak will happen to say the character */
-			rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER,
-					  0, synth_mode, NULL, NULL);
+			rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0,
+			                  synth_mode, NULL, NULL);
 		} else {
-			rc = espeak_Synth(buf, n + 1, 0, POS_CHARACTER, 0,
-					  espeakSSML, NULL, NULL);
+			rc = espeak_Synth(buf, n + 1, 0, POS_CHARACTER, 0, espeakSSML, NULL,
+			                  NULL);
 			free(buf);
 		}
 	} else
-		rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0,
-				  synth_mode, NULL, NULL);
+		rc = espeak_Synth(s->buf, s->len + 1, 0, POS_CHARACTER, 0, synth_mode,
+		                  NULL, NULL);
 	return rc;
 }
 
@@ -361,9 +347,10 @@ static void queue_process_entry(struct synth_t *s)
 		error = set_frequency(s, current->value, current->adjust);
 		break;
 	case CMD_SET_MARK:
-		snprintf(markbuff, sizeof(markbuff), "<mark name=\"%d\"/>", current->value);
-		error = espeak_Synth(markbuff, strlen(markbuff)+1, 0, POS_CHARACTER,
-				     0, espeakSSML, NULL, NULL);
+		snprintf(markbuff, sizeof(markbuff), "<mark name=\"%d\"/>",
+		         current->value);
+		error = espeak_Synth(markbuff, strlen(markbuff) + 1, 0, POS_CHARACTER,
+		                     0, espeakSSML, NULL, NULL);
 		break;
 	case CMD_SET_PITCH:
 		error = set_pitch(s, current->value, current->adjust);
@@ -452,14 +439,13 @@ int initialize_espeak(struct synth_t *s)
  * The main thread can add items to the queue in exactly two situations:
  * 1. We are waiting on runner_awake, or
  * 2. We are processing an entry that has just been removed from the queue.
-*/
+ */
 void *espeak_thread(void *arg)
 {
 	struct synth_t *s = (struct synth_t *) arg;
 
 	pthread_mutex_lock(&queue_guard);
 	while (should_run) {
-
 		while (should_run && !queue_peek(synth_queue) && !stop_requested)
 			pthread_cond_wait(&runner_awake, &queue_guard);
 
