@@ -35,15 +35,6 @@ software synthesizer and after /dev/softsynth exists.  The way this is
 done is distribution specific, so it is beyond the scope of this
 documentation.
 
-## Command Line Options
-
-Espeakup currently accepts the following command line options:
-
-  --default-voice=voice, -V voice	Set default voice.
-  --debug, -d				Debug mode (stay in the foreground).
-  --help, -h				Show this help.
-  --version, -v				Display the software version.
-
 ## Acknowledgements
 
 I would like to thank Marc Mulcahy, the author of the speakup to
