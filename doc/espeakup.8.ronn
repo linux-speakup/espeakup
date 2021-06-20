@@ -71,7 +71,7 @@ espeak-ng can be found at [github](https://github.com/espeak-ng/espeak-ng)
 
 William Hubbs <w.d.hubbs@gmail.com> is the author of espeakup.
 
-This manual page was written by Chris Brannon <cmbrannon79@gmail.com>.
+This manual page was written by Chris Brannon <chris@the-brannons.com>.
 
 current authors and maintainers can be found at
 [github](https://github.com/linux-speakup/espeakup/graphs/contributors)
