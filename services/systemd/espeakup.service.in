@@ -1,14 +1,13 @@
 [Unit]
 Description=Software speech output for Speakup
 Documentation=man:espeakup(8)
-Wants=systemd-udev-settle.service
-After=systemd-udev-settle.service sound.target
+Wants=modprobe@speakup_soft.service
+After=modprobe@speakup_soft.service sound.target
 
 [Service]
 Type=forking
 PIDFile=/run/espeakup.pid
 Environment="default_voice="
-ExecStartPre=+modprobe speakup_soft
 ExecStart=@bindir@/espeakup --default-voice=${default_voice}
 ExecReload=kill -HUP $MAINPID
 Restart=always
