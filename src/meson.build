@@ -1,6 +1,3 @@
-espeakup_version = vcs_tag(input : 'version.h.in', output : 'version.h')
-
-
 espeakup_sources = files([
         'cli.c',
         'espeak.c',
@@ -10,3 +7,4 @@ espeakup_sources = files([
         'softsynth.c',
         'stringhandling.c'
 ])
+espeakup_version = vcs_tag(input : 'version.h.in', output : 'version.h')
