@@ -1,5 +1,9 @@
 project('espeakup', 'c',
-  default_options : ['buildtype=debugoptimized', 'c_std=gnu11', 'warning_level=3'],
+  default_options : [
+    'buildtype=debugoptimized',
+    'c_std=gnu11',
+    'warning_level=3'
+    ],
   license : 'GPL-3.0-or-later',
   version : '0.90',
   meson_version : '>=0.47.0')
@@ -15,7 +19,7 @@ subdir('services')
 subdir('src')
 
 executable('espeakup',
-           espeakup_version,
-           espeakup_sources,
-           dependencies : [thread_dep, espeak_dep, alsa_dep, math_dep],
-           install : true)
+  espeakup_version,
+  espeakup_sources,
+  dependencies : [thread_dep, espeak_dep, alsa_dep, math_dep],
+  install : true)
