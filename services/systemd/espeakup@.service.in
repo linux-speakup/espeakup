@@ -1,0 +1,18 @@
+[Unit]
+Description=Software speech output for Speakup
+Documentation=man:espeakup(8)
+Wants=modprobe@speakup_soft.service
+After=modprobe@speakup_soft.service sound.target
+Conflicts=espeakup.service
+
+[Service]
+Type=forking
+PIDFile=/run/espeakup.pid
+ExecStart=@bindir@/espeakup --default-voice=%I
+ExecReload=kill -HUP $MAINPID
+Restart=always
+Nice=-10
+OOMScoreAdjust=-900
+
+[Install]
+WantedBy=sound.target

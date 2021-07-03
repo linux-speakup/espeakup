@@ -11,6 +11,12 @@ service_file = configure_file(
   configuration : unit_conf
 )
 
-install_data(service_file,
+user_service_file = configure_file(
+  input : 'espeakup@.service.in',
+  output : 'espeakup@.service',
+  configuration : unit_conf
+)
+
+install_data(service_file, user_service_file,
   install_dir : unitdir
 )
