@@ -62,6 +62,17 @@ void *reallocMem(void *p, size_t n)
 	return s;
 }
 
+char *dupeString(char *s)
+{
+	char *c;
+
+	if (!(c = strdup(s))) {
+		fprintf(stderr, "Out of memory!\n");
+		exit(1);
+	}
+	return c;
+}
+
 char *initString(int *l)
 {
 	*l = 0;
