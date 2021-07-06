@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "espeakup.h"
+#include "stringhandling.h"
 #include "version.h"
 
 /* pid path */
@@ -72,18 +73,15 @@ static void show_version(void)
 void process_cli(int argc, char **argv)
 {
 	int opt;
-	char *cp;
 
 	do {
 		opt = getopt_long(argc, argv, shortOptions, longOptions, NULL);
 		switch (opt) {
 		case 'p':
-			cp = strdup(optarg);
-			if (cp != NULL)
-				pidPath = cp;
+			pidPath = dupeString(optarg);
 			break;
 		case 'V':
-			defaultVoice = strdup(optarg);
+			defaultVoice = dupeString(optarg);
 			break;
 		case 'a':
 			espeakup_mode = ESPEAKUP_MODE_ACSINT;
