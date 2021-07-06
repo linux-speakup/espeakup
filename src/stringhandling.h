@@ -26,6 +26,7 @@ extern char *EMPTYSTRING;
 
 void *allocMem(size_t n);
 void *reallocMem(void *p, size_t n);
+char *dupeString(char *s);
 char *initString(int *l);
 void stringAndString(char **s, int *l, const char *t);
 void stringAndBytes(char **s, int *l, const char *t, int cnt);
