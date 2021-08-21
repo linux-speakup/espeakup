@@ -249,7 +249,7 @@ int open_softsynth(void)
 		// Kernel without unicode support? Try without unicode.
 		softFD = open("/dev/softsynth", O_RDWR | O_NONBLOCK);
 	if (softFD < 0) {
-		perror("Unable to open the softsynth device");
+		perror("Unable to open the /dev/softsynth device");
 		rc = -1;
 	}
 	return rc;
