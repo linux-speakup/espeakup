@@ -12,6 +12,7 @@ ExecStart=@bindir@/espeakup --default-voice=${default_voice}
 ExecReload=kill -HUP $MAINPID
 Restart=always
 Nice=-10
+OOMScoreAdjust=-900
 
 [Install]
 WantedBy=sound.target
