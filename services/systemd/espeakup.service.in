@@ -11,6 +11,7 @@ Environment="default_voice="
 ExecStart=@bindir@/espeakup --default-voice=${default_voice}
 ExecReload=kill -HUP $MAINPID
 Restart=always
+Nice=-10
 
 [Install]
 WantedBy=sound.target
