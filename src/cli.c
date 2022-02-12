@@ -77,7 +77,7 @@ void process_cli(int argc, char **argv)
 	do {
 		opt = getopt_long(argc, argv, shortOptions, longOptions, NULL);
 		switch (opt) {
-		case 'p':
+		case 'P':
 			pidPath = dupeString(optarg);
 			break;
 		case 'V':
