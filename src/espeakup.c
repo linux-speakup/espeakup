@@ -40,6 +40,7 @@ volatile int should_run = 1;
 espeak_AUDIO_OUTPUT audio_mode;
 
 pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
+pthread_cond_t wake_stop = PTHREAD_COND_INITIALIZER;
 pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
 

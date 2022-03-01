@@ -99,6 +99,7 @@ extern int self_pipe_fds[2];
 #define PIPE_WRITE_FD (self_pipe_fds[1])
 
 extern pthread_cond_t runner_awake;
+extern pthread_cond_t wake_stop;
 extern pthread_cond_t stop_acknowledged;
 extern pthread_mutex_t queue_guard;
 

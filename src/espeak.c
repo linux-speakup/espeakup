@@ -325,16 +325,16 @@ static void reinitialize_espeak(struct synth_t *s)
 	return;
 }
 
+static struct espeak_entry_t *current = NULL;
 static void queue_process_entry(struct synth_t *s)
 {
-	espeak_ERROR error;
+	espeak_ERROR error = EE_OK;
 	char markbuff[50];
-	static struct espeak_entry_t *current = NULL;
 
 	if (current != queue_peek(synth_queue)) {
 		if (current)
 			free_espeak_entry(current);
-		current = (struct espeak_entry_t *) queue_remove(synth_queue);
+		current = queue_peek(synth_queue);
 	}
 	pthread_mutex_unlock(&queue_guard);
 
@@ -386,9 +386,25 @@ static void queue_process_entry(struct synth_t *s)
 		break;
 	}
 
+	pthread_mutex_lock(&queue_guard);
 	if (error == EE_OK) {
+		/* Processed, drop it */
+		struct espeak_entry_t *unqueued = queue_remove(synth_queue);
+		assert(unqueued == current);
 		free_espeak_entry(current);
 		current = NULL;
+	} else {
+		if (error == EE_BUFFER_FULL)
+		{
+			/* Give speak a little break before retrying */
+			struct timespec timeout;
+			clock_gettime(CLOCK_REALTIME, &timeout);
+			timeout.tv_sec++;
+			/* But wake up immediately if we have to stop */
+			pthread_cond_timedwait(&wake_stop, &queue_guard, &timeout);
+		}
+		else
+			fprintf(stderr, "espeak error: %d\n", error);
 	}
 }
 
@@ -450,6 +466,7 @@ void *espeak_thread(void *arg)
 			pthread_cond_wait(&runner_awake, &queue_guard);
 
 		if (stop_requested) {
+			current = NULL;
 			stop_speech();
 			synth_queue_clear();
 			stop_requested = 0;
@@ -458,7 +475,6 @@ void *espeak_thread(void *arg)
 
 		while (should_run && queue_peek(synth_queue) && !stop_requested) {
 			queue_process_entry(s);
-			pthread_mutex_lock(&queue_guard);
 		}
 	}
 	pthread_cond_signal(&stop_acknowledged);
