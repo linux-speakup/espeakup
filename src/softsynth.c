@@ -228,6 +228,7 @@ static void request_espeak_stop(void)
 	pthread_mutex_lock(&queue_guard);
 	stop_requested = 1;
 	pthread_cond_signal(&runner_awake);     // Wake runner, if necessary.
+	pthread_cond_signal(&wake_stop);        // Wake runner, if necessary.
 	while (should_run && stop_requested)
 		// wait for acknowledgement.
 		pthread_cond_wait(&stop_acknowledged, &queue_guard);
