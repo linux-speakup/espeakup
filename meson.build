@@ -6,7 +6,7 @@ project('espeakup', 'c',
     ],
   license : 'GPL-3.0-or-later',
   version : '0.90',
-  meson_version : '>=0.47.0')
+  meson_version : '>=0.51.0')
 
 cc = meson.get_compiler('c')
 thread_dep = dependency('threads')
