@@ -377,12 +377,18 @@ static void queue_process_entry(struct synth_t *s)
 		break;
 	case CMD_PAUSE:
 		if (!paused_espeak) {
-			espeak_Cancel();
-			espeak_Terminate();
-			paused_espeak = 1;
+			error = espeak_Cancel();
+			if (error == EE_OK)
+				error = espeak_Terminate();
+			if (error == EE_OK)
+				paused_espeak = 1;
+		} else {
+			error = EE_OK;
 		}
 		break;
 	default:
+		/* Uh? */
+		error = EE_OK;
 		break;
 	}
 
