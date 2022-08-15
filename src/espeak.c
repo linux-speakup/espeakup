@@ -108,12 +108,31 @@ static espeak_ERROR set_punctuation(struct synth_t *s, int punct,
                                     enum adjust_t adj)
 {
 	espeak_ERROR rc;
+	espeak_PUNCT_TYPE espeak_punct;
 
 	if (adj == ADJ_DEC)
 		punct = -punct;
 	if (adj != ADJ_SET)
 		punct += s->punct;
-	rc = espeak_SetParameter(espeakPUNCTUATION, punct, 0);
+
+	switch (punct) {
+		case 0:
+			espeak_punct = espeakPUNCT_NONE;
+			break;
+		case 1:
+			espeak_punct = espeakPUNCT_SOME;
+			break;
+		case 2:
+			/* XXX: approximation */
+			espeak_punct = espeakPUNCT_SOME;
+			break;
+		case 3:
+		default:
+			espeak_punct = espeakPUNCT_ALL;
+			break;
+	}
+
+	rc = espeak_SetParameter(espeakPUNCTUATION, espeak_punct, 0);
 	if (rc == EE_OK)
 		s->punct = punct;
 	return rc;
