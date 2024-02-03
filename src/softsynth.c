@@ -64,6 +64,39 @@ static void queue_add_text(char *txt, size_t length)
 	struct espeak_entry_t *entry;
 	int added = 0;
 
+	// code to scan for and undo the character scramblings of Speakup
+	// much easier solution than trying to fix it in Speakup kernel code
+	size_t in = 0, out = 0;
+	while (in < length) {
+		// character erroneously sign-extended to 0xff80 - 0xffff and then UTF8-encoded?
+		if (txt[in] == 0xef && in <= length - 3 && (txt[in + 1] & 0xfe) == 0xbe && (txt[in + 2] & 0xc0) == 0x80) {
+			txt[out++] = 0x80 | ((txt[in + 1] & 1) << 6) | (txt[in + 2] & 0x3f); // yes, let's restore it
+			in += 3; // skip the scrambled UTF8
+		}
+		// 2 or 3 byte UTF8, erroneously double-encoded by Speakup?
+		// test common conditions for these first
+		else if (txt[in] == 0xc3 && in <= length - 4 && txt[in + 2] == 0xc2 && (txt[in + 3] & 0xc0) == 0x80) {
+			// is it a double-encoded 2 byte UTF8?
+			if ((txt[in + 1] & 0xe0) == 0x80) {
+				txt[out++] = txt[in + 1] | 0xc0; // yes, let's unscramble it
+				txt[out++] = txt[in + 3];
+				in += 4; // skip the scrambled UTF8
+			}
+			// or rather a 3 byte double-encoded UTF8?
+			else if (in <= length - 6 && txt[in + 4] == 0xc2 && (txt[in + 1] & 0xf0) == 0xa0 && (txt[in + 5] & 0xc0) == 0x80) {
+				txt[out++] = txt[in + 1] | 0xc0; // that's it, let's undo the scrambling
+				txt[out++] = txt[in + 3];
+				txt[out++] = txt[in + 5];
+				in += 6; // skip the scrambled UTF8
+			}
+			// not a starter of such sequences, copy verbatim
+			else txt[out++] = txt[in++];
+		}
+		// not a starter of a scrambled sequence at all, copy verbatim
+		else txt[out++] = txt[in++];
+	}
+	txt[out] = 0; // terminate the buffer as unscrambled string may be shorter than original
+
 	entry = allocMem(sizeof(struct espeak_entry_t));
 	entry->cmd = CMD_SPEAK_TEXT;
 	entry->adjust = ADJ_SET;
@@ -73,7 +106,7 @@ static void queue_add_text(char *txt, size_t length)
 		free(entry);
 		return;
 	}
-	entry->len = length;
+	entry->len = out; // unscrambled length may be shorter than original
 	pthread_mutex_lock(&queue_guard);
 	added = queue_add(synth_queue, (void *) entry);
 	if (!added) {
