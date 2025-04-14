@@ -35,11 +35,15 @@ extern char *defaultVoice;
 /* Whether to drive ALSA volume */
 extern int alsaVolume;
 
+/* default volume */
+extern int defaultVolume;
+extern int volumeSet;
 /* command line options */
 const char *shortOptions = "P:V:adhv";
 const struct option longOptions[] = {
 	{"pid-path", required_argument, NULL, 'P'},
 	{"default-voice", required_argument, NULL, 'V'},
+	{"volume", required_argument, NULL, 'x'},
 	{"alsa-volume", no_argument, &alsaVolume, 1},
 	{"acsint", no_argument, NULL, 'a'},
 	{"debug", no_argument, NULL, 'd'},
@@ -57,6 +61,7 @@ static void show_help()
 	printf("  --debug, -d\t\t\t\tDebug mode (stay in the foreground).\n");
 	printf("  --help, -h\t\t\t\tShow this help.\n");
 	printf("  --version, -v\t\t\t\tDisplay the software version.\n");
+	printf("  --volume=[1-150]\t\t\tSet the volume of speakup.\n");
 	exit(0);
 }
 
@@ -94,6 +99,14 @@ void process_cli(int argc, char **argv)
 			break;
 		case 'v':
 			show_version();
+			break;
+		case 'x':
+			volumeSet = 1;
+			defaultVolume = atoi(optarg);
+			if (defaultVolume < 1 || defaultVolume > 150) {
+				fprintf(stderr, "WARNING: Volume must be between 1 and 150\n");
+				volumeSet = 0;
+			}
 			break;
 		case -1:
 		case 0:

@@ -32,7 +32,8 @@ const int defaultFrequency = 5;
 const int defaultPitch = 5;
 const int defaultRange = 5;
 const int defaultRate = 2;
-const int defaultVolume = 5;
+int defaultVolume = 5;
+int volumeSet = 0;
 char *defaultVoice = NULL;
 int alsaVolume = 0;
 
@@ -42,7 +43,7 @@ const int pitchMultiplier = 11;
 const int rangeMultiplier = 11;
 const int rateMultiplier = 41;
 const int rateOffset = 80;
-const int volumeMultiplier = 22;
+const int volumeMultiplier = 16;
 
 volatile int stop_requested = 0;
 int paused_espeak = 1;
@@ -246,11 +247,19 @@ static espeak_ERROR set_volume(struct synth_t *s, int vol, enum adjust_t adj)
 {
 	espeak_ERROR rc;
 
+
 	if (adj == ADJ_DEC)
 		vol = -vol;
 	if (adj != ADJ_SET)
 		vol += s->volume;
-	rc = espeak_SetParameter(espeakVOLUME, (vol + 1) * volumeMultiplier, 0);
+
+	/* use the volume if specified by the user */
+	if (volumeSet) {
+		rc = espeak_SetParameter(espeakVOLUME, defaultVolume, 0);
+	}
+	else {
+		rc = espeak_SetParameter(espeakVOLUME, (vol + 1) * volumeMultiplier, 0);
+	}
 	if (rc == EE_OK) {
 		s->volume = vol;
 		if (alsaVolume)
