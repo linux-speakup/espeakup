@@ -204,6 +204,10 @@ static void set_alsa_volume(int vol)
 	 * 100%. */
 
 	int volume = (vol + 1) * 50 / 10 + 50;
+	/*lock the volume to the user-set volume if specified*/
+	if(volumeSet){
+		volume = defaultVolume;
+	}
 
 	for (e = snd_mixer_first_elem(m); e; e = snd_mixer_elem_next(e)) {
 		if (snd_mixer_elem_get_type(e) != SND_MIXER_ELEM_SIMPLE)
@@ -253,7 +257,7 @@ static espeak_ERROR set_volume(struct synth_t *s, int vol, enum adjust_t adj)
 	if (adj != ADJ_SET)
 		vol += s->volume;
 
-	/* use the volume if specified by the user */
+	/*lock the volume to the user-set volume if specified*/
 	if (volumeSet) {
 		rc = espeak_SetParameter(espeakVOLUME, defaultVolume, 0);
 	}
