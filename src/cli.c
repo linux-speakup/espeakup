@@ -37,7 +37,9 @@ extern int alsaVolume;
 
 /* default volume */
 extern int defaultVolume;
-extern int volumeSet;
+extern int volumeOffset;
+extern int alsaVolumeOffset;
+extern int volumeMultiplier;
 /* command line options */
 const char *shortOptions = "P:V:adhv";
 const struct option longOptions[] = {
@@ -101,13 +103,14 @@ void process_cli(int argc, char **argv)
 			show_version();
 			break;
 		case 'x':
-			volumeSet = 1;
-			defaultVolume = atoi(optarg);
-			if (defaultVolume < 1 || defaultVolume > 150) {
+			alsaVolumeOffset = volumeOffset = atoi(optarg);
+			if (volumeOffset < 1 || volumeOffset > 150) {
 				fprintf(stderr, "WARNING: Volume must be between 1 and 150\n");
-				volumeSet = 0;
+				volumeOffset = 0;
 			}
-			break;
+                        alsaVolumeOffset -= (defaultVolume + 1) * 50 / 10 + 50;
+                        volumeOffset -= (defaultVolume + 1) * volumeMultiplier;
+                        break;
 		case -1:
 		case 0:
 			break;
