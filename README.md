@@ -22,7 +22,7 @@ espeakup yet, espeakup just uses meson, so you should be able to
 change to the source directory, then type:
 
 ```bash
-meson . ./build
+meson setup . ./build
 cd ./build
 ninja
 sudo ninja install
