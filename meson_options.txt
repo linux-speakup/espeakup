@@ -1,4 +1,4 @@
 option('man', type : 'feature', value : 'auto',
        description : 'build manpage with ronn')
-option('systemd', type : 'feature', value : 'auto',
+option('systemd', type : 'boolean', value : true,
        description :'enable systemd support')

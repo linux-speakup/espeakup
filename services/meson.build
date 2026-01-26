@@ -1,4 +1,3 @@
-systemd = dependency('systemd', required: get_option('systemd'))
-if systemd.found()
+if get_option('systemd')
     subdir('systemd')
 endif

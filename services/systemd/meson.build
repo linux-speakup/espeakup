@@ -1,5 +1,5 @@
-unitdir = systemd.get_variable(pkgconfig: 'systemdsystemunitdir')
 prefixdir = get_option('prefix')
+unitdir = join_paths(prefixdir, get_option('libdir'), 'systemd', 'system')
 bindir = join_paths(prefixdir, get_option('bindir'))
 
 unit_conf = configuration_data()
