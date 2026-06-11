@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "espeakup.h"
 
@@ -48,9 +49,30 @@ const int volumeMultiplier = 22;
 volatile int stop_requested = 0;
 int paused_espeak = 1;
 
+/* Wedged-engine detection.  Espeak may legitimately refuse entries for a
+ * while (EE_BUFFER_FULL while a long backlog is being played back), so a
+ * failing entry is normally just retried.  But when entries keep failing
+ * while the synth callback reports no progress at all, the audio output
+ * is most likely wedged (e.g. an ALSA device stuck returning EBUSY).
+ * After ESPEAK_STALL_RETRIES consecutive such retries (about one second
+ * each), restart the engine; after ESPEAK_MAX_RESTARTS restarts without
+ * the engine having been healthy for ESPEAK_HEALTHY_SECS in between,
+ * give up and exit, so that the init system can respawn us. */
+#define ESPEAK_STALL_RETRIES 10
+#define ESPEAK_MAX_RESTARTS 3
+#define ESPEAK_HEALTHY_SECS 60
+
+/* Set by the synth callback whenever espeak makes synthesis progress;
+ * used to tell a merely backlogged engine from a wedged one. */
+static volatile int synth_progressed = 0;
+static int stalled_retries = 0;
+static int restart_attempts = 0;
+static struct timespec last_restart;
+
 static int callback(short *wav, int numsamples, espeak_EVENT *events)
 {
 	int i;
+	synth_progressed = 1;
 	for (i = 0; events[i].type != espeakEVENT_LIST_TERMINATED; i++) {
 		if (events[i].type == espeakEVENT_MARK) {
 			int mark = atoi(events[i].id.name);
@@ -358,6 +380,50 @@ static void espeak_wait_retry(void)
 	pthread_cond_timedwait(&wake_stop, &queue_guard, &timeout);
 }
 
+/* Handle an entry which could not be processed.  Called and returns
+ * with queue_guard held.
+ * Normally just back off before the retry, but watch out for a wedged
+ * engine: if entries keep failing while the synth callback shows no
+ * progress at all, restart the engine, and if restarting does not help
+ * either, exit so that the init system respawns us in a clean state. */
+static void espeak_handle_failure(struct synth_t *s)
+{
+	if (synth_progressed) {
+		/* Espeak is making progress, it is merely backlogged. */
+		synth_progressed = 0;
+		stalled_retries = 0;
+	} else if (++stalled_retries >= ESPEAK_STALL_RETRIES) {
+		stalled_retries = 0;
+		if (++restart_attempts > ESPEAK_MAX_RESTARTS) {
+			fprintf(stderr, "espeakup: espeak keeps failing without "
+			        "making progress and restarting it did not help, "
+			        "aborting\n");
+			/* Use _exit because exit could hang in library destructors
+			 * while the audio device is wedged. */
+			_exit(3);
+		}
+		fprintf(stderr, "espeakup: espeak has been failing without "
+		        "making progress for %d seconds, restarting it\n",
+		        ESPEAK_STALL_RETRIES);
+		/* Call into espeak with queue_guard released: these calls can
+		 * take time, or block on a wedged audio device.  If they do
+		 * block forever, the stop-acknowledgement timeout in the
+		 * softsynth thread is our last resort. */
+		pthread_mutex_unlock(&queue_guard);
+		if (!paused_espeak) {
+			espeak_Cancel();
+			espeak_Terminate();
+			paused_espeak = 1;
+		}
+		reinitialize_espeak(s);
+		clock_gettime(CLOCK_MONOTONIC, &last_restart);
+		pthread_mutex_lock(&queue_guard);
+		return;
+	}
+
+	espeak_wait_retry();
+}
+
 static struct espeak_entry_t *current = NULL;
 static void queue_process_entry(struct synth_t *s)
 {
@@ -378,7 +444,7 @@ static void queue_process_entry(struct synth_t *s)
 			 * just fail (or worse).  Leave the entry queued and retry
 			 * after a small pause. */
 			pthread_mutex_lock(&queue_guard);
-			espeak_wait_retry();
+			espeak_handle_failure(s);
 			return;
 		}
 	}
@@ -440,6 +506,18 @@ static void queue_process_entry(struct synth_t *s)
 		assert(unqueued == current);
 		free_espeak_entry(current);
 		current = NULL;
+		stalled_retries = 0;
+		if (restart_attempts) {
+			/* Forget about past restarts once the engine has been
+			 * healthy for a while.  Entries can spuriously succeed
+			 * right after a restart while the audio output is still
+			 * wedged (espeak's internal queue is empty again), so a
+			 * quick success must not reset the counter. */
+			struct timespec now;
+			clock_gettime(CLOCK_MONOTONIC, &now);
+			if (now.tv_sec - last_restart.tv_sec >= ESPEAK_HEALTHY_SECS)
+				restart_attempts = 0;
+		}
 	} else {
 		if (error != EE_BUFFER_FULL)
 			fprintf(stderr, "espeak error: %d\n", error);
@@ -447,7 +525,7 @@ static void queue_process_entry(struct synth_t *s)
 		 * little break before that, whatever the error: previously only
 		 * EE_BUFFER_FULL throttled, and any other persistent error made
 		 * us retry the same entry in a tight loop, burning a whole CPU. */
-		espeak_wait_retry();
+		espeak_handle_failure(s);
 	}
 }
 
