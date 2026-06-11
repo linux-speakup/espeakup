@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "espeakup.h"
@@ -41,7 +42,8 @@ espeak_AUDIO_OUTPUT audio_mode;
 
 pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
 pthread_cond_t wake_stop = PTHREAD_COND_INITIALIZER;
-pthread_cond_t stop_acknowledged = PTHREAD_COND_INITIALIZER;
+/* Initialized in main: uses the monotonic clock for timed waits. */
+pthread_cond_t stop_acknowledged;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
 
 int espeakup_start_daemon(void)
@@ -147,6 +149,17 @@ int main(int argc, char **argv)
 	struct synth_t s = {
 		.voice = "",
 	};
+	pthread_condattr_t monotonic_attr;
+
+	/* Condition variables used with pthread_cond_timedwait must use the
+	 * monotonic clock, so that wall-clock adjustments (NTP, an
+	 * installer setting the system time) cannot make the timeouts fire
+	 * too early or far too late. */
+	pthread_condattr_init(&monotonic_attr);
+	pthread_condattr_setclock(&monotonic_attr, CLOCK_MONOTONIC);
+	pthread_cond_init(&stop_acknowledged, &monotonic_attr);
+	pthread_condattr_destroy(&monotonic_attr);
+
 	synth_queue = new_queue();
 
 	if (!synth_queue) {
