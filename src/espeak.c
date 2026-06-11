@@ -492,7 +492,16 @@ void *espeak_thread(void *arg)
 
 		if (stop_requested) {
 			current = NULL;
+			/* Call into espeak with queue_guard released: espeak_Cancel
+			 * can take time, or even block indefinitely when the audio
+			 * output is wedged, and holding the lock here would prevent
+			 * the other threads from ever making progress again.  The
+			 * queue cannot change concurrently: the only producer (the
+			 * softsynth thread) is blocked waiting for stop_acknowledged
+			 * as long as stop_requested is set. */
+			pthread_mutex_unlock(&queue_guard);
 			stop_speech();
+			pthread_mutex_lock(&queue_guard);
 			synth_queue_clear();
 			stop_requested = 0;
 			pthread_cond_signal(&stop_acknowledged);
