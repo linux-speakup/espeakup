@@ -375,7 +375,7 @@ static void espeak_wait_retry(void)
 {
 	struct timespec timeout;
 
-	clock_gettime(CLOCK_REALTIME, &timeout);
+	clock_gettime(CLOCK_MONOTONIC, &timeout);
 	timeout.tv_sec++;
 	pthread_cond_timedwait(&wake_stop, &queue_guard, &timeout);
 }

@@ -41,8 +41,8 @@ volatile int should_run = 1;
 espeak_AUDIO_OUTPUT audio_mode;
 
 pthread_cond_t runner_awake = PTHREAD_COND_INITIALIZER;
-pthread_cond_t wake_stop = PTHREAD_COND_INITIALIZER;
-/* Initialized in main: uses the monotonic clock for timed waits. */
+/* Initialized in main: use the monotonic clock for timed waits. */
+pthread_cond_t wake_stop;
 pthread_cond_t stop_acknowledged;
 pthread_mutex_t queue_guard = PTHREAD_MUTEX_INITIALIZER;
 
@@ -157,6 +157,7 @@ int main(int argc, char **argv)
 	 * too early or far too late. */
 	pthread_condattr_init(&monotonic_attr);
 	pthread_condattr_setclock(&monotonic_attr, CLOCK_MONOTONIC);
+	pthread_cond_init(&wake_stop, &monotonic_attr);
 	pthread_cond_init(&stop_acknowledged, &monotonic_attr);
 	pthread_condattr_destroy(&monotonic_attr);
 
