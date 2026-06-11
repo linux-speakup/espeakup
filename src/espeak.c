@@ -321,7 +321,7 @@ static void synth_queue_clear()
 	}
 }
 
-static void reinitialize_espeak(struct synth_t *s)
+static int reinitialize_espeak(struct synth_t *s)
 {
 	int rate;
 
@@ -329,7 +329,7 @@ static void reinitialize_espeak(struct synth_t *s)
 	rate = espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0);
 	if (rate < 0) {
 		fprintf(stderr, "Unable to initialize espeak.\n");
-		return;
+		return -1;
 	}
 
 	espeak_SetSynthCallback(callback);
@@ -342,7 +342,7 @@ static void reinitialize_espeak(struct synth_t *s)
 	espeak_SetParameter(espeakVOLUME, (s->volume + 1) * volumeMultiplier, 0);
 	espeak_SetParameter(espeakCAPITALS, 0, 0);
 	paused_espeak = 0;
-	return;
+	return 0;
 }
 
 /* Wait for up to a second before retrying an entry which could not be
@@ -372,7 +372,15 @@ static void queue_process_entry(struct synth_t *s)
 	pthread_mutex_unlock(&queue_guard);
 
 	if (current->cmd != CMD_PAUSE && paused_espeak) {
-		reinitialize_espeak(s);
+		if (reinitialize_espeak(s) < 0) {
+			/* Espeak is unavailable, so the entry cannot be processed.
+			 * Calling espeak functions on a terminated engine would
+			 * just fail (or worse).  Leave the entry queued and retry
+			 * after a small pause. */
+			pthread_mutex_lock(&queue_guard);
+			espeak_wait_retry();
+			return;
+		}
 	}
 
 	switch (current->cmd) {
