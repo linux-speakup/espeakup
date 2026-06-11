@@ -21,6 +21,7 @@
 #include <alsa/asoundlib.h>
 #include <assert.h>
 #include <math.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,8 +64,9 @@ int paused_espeak = 1;
 #define ESPEAK_HEALTHY_SECS 60
 
 /* Set by the synth callback whenever espeak makes synthesis progress;
- * used to tell a merely backlogged engine from a wedged one. */
-static volatile int synth_progressed = 0;
+ * used to tell a merely backlogged engine from a wedged one.  The
+ * callback runs in espeak's own thread, so the flag is atomic. */
+static atomic_int synth_progressed = 0;
 static int stalled_retries = 0;
 static int restart_attempts = 0;
 static struct timespec last_restart;
@@ -72,7 +74,7 @@ static struct timespec last_restart;
 static int callback(short *wav, int numsamples, espeak_EVENT *events)
 {
 	int i;
-	synth_progressed = 1;
+	atomic_store(&synth_progressed, 1);
 	for (i = 0; events[i].type != espeakEVENT_LIST_TERMINATED; i++) {
 		if (events[i].type == espeakEVENT_MARK) {
 			int mark = atoi(events[i].id.name);
@@ -388,9 +390,8 @@ static void espeak_wait_retry(void)
  * either, exit so that the init system respawns us in a clean state. */
 static void espeak_handle_failure(struct synth_t *s)
 {
-	if (synth_progressed) {
+	if (atomic_exchange(&synth_progressed, 0)) {
 		/* Espeak is making progress, it is merely backlogged. */
-		synth_progressed = 0;
 		stalled_retries = 0;
 	} else if (++stalled_retries >= ESPEAK_STALL_RETRIES) {
 		stalled_retries = 0;
