@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "espeakup.h"
 
@@ -344,6 +345,19 @@ static void reinitialize_espeak(struct synth_t *s)
 	return;
 }
 
+/* Wait for up to a second before retrying an entry which could not be
+ * processed, so that we do not busy-loop on a persistent error.  Called
+ * and returns with queue_guard held.  Wakes up immediately if a stop is
+ * requested. */
+static void espeak_wait_retry(void)
+{
+	struct timespec timeout;
+
+	clock_gettime(CLOCK_REALTIME, &timeout);
+	timeout.tv_sec++;
+	pthread_cond_timedwait(&wake_stop, &queue_guard, &timeout);
+}
+
 static struct espeak_entry_t *current = NULL;
 static void queue_process_entry(struct synth_t *s)
 {
@@ -419,17 +433,13 @@ static void queue_process_entry(struct synth_t *s)
 		free_espeak_entry(current);
 		current = NULL;
 	} else {
-		if (error == EE_BUFFER_FULL)
-		{
-			/* Give speak a little break before retrying */
-			struct timespec timeout;
-			clock_gettime(CLOCK_REALTIME, &timeout);
-			timeout.tv_sec++;
-			/* But wake up immediately if we have to stop */
-			pthread_cond_timedwait(&wake_stop, &queue_guard, &timeout);
-		}
-		else
+		if (error != EE_BUFFER_FULL)
 			fprintf(stderr, "espeak error: %d\n", error);
+		/* The entry stays queued and will be retried.  Give espeak a
+		 * little break before that, whatever the error: previously only
+		 * EE_BUFFER_FULL throttled, and any other persistent error made
+		 * us retry the same entry in a tight loop, burning a whole CPU. */
+		espeak_wait_retry();
 	}
 }
 
