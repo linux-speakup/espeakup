@@ -58,6 +58,14 @@ void *signal_thread(void *arg)
 		case SIGTERM:
 			pthread_mutex_lock(&queue_guard);
 			should_run = 0;
+			/* Wake up any thread waiting on a condition variable so
+			 * that it notices the shutdown request: the softsynth
+			 * thread may be waiting for a stop acknowledgement, and
+			 * the espeak thread may be waiting for work or throttling
+			 * before a retry. */
+			pthread_cond_broadcast(&runner_awake);
+			pthread_cond_broadcast(&wake_stop);
+			pthread_cond_broadcast(&stop_acknowledged);
 			pthread_mutex_unlock(&queue_guard);
 			break;
 		default:
