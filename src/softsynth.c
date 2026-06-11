@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/select.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "espeakup.h"
@@ -223,15 +224,37 @@ static void process_buffer_acsint(struct synth_t *s, char *buf, ssize_t length)
 	}
 }
 
+/* How long to wait for the espeak thread to acknowledge a stop request
+ * before concluding that espeak is wedged beyond in-process recovery. */
+static const int stopAckTimeout = 10;
+
 static void request_espeak_stop(void)
 {
+	struct timespec timeout;
+	int err = 0;
+
 	pthread_mutex_lock(&queue_guard);
 	stop_requested = 1;
 	pthread_cond_signal(&runner_awake);     // Wake runner, if necessary.
 	pthread_cond_signal(&wake_stop);        // Wake runner, if necessary.
-	while (should_run && stop_requested)
+	clock_gettime(CLOCK_REALTIME, &timeout);
+	timeout.tv_sec += stopAckTimeout;
+	while (should_run && stop_requested && err != ETIMEDOUT)
 		// wait for acknowledgement.
-		pthread_cond_wait(&stop_acknowledged, &queue_guard);
+		err = pthread_cond_timedwait(&stop_acknowledged, &queue_guard,
+		                             &timeout);
+	if (should_run && stop_requested) {
+		/* The espeak thread is stuck in a call into espeak, most likely
+		 * on a wedged audio device.  There is no way to recover from
+		 * within the process: exit so that the init system can respawn
+		 * us in a clean state, rather than staying silent, ignoring
+		 * SIGTERM, and stalling the whole console by not draining
+		 * /dev/softsynth anymore.  Use _exit because exit could hang in
+		 * library destructors while the audio device is wedged. */
+		fprintf(stderr, "espeakup: espeak did not acknowledge a stop "
+		        "request within %d seconds, aborting\n", stopAckTimeout);
+		_exit(3);
+	}
 	pthread_mutex_unlock(&queue_guard);
 }
 
