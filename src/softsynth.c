@@ -237,7 +237,7 @@ static void request_espeak_stop(void)
 	stop_requested = 1;
 	pthread_cond_signal(&runner_awake);     // Wake runner, if necessary.
 	pthread_cond_signal(&wake_stop);        // Wake runner, if necessary.
-	clock_gettime(CLOCK_REALTIME, &timeout);
+	clock_gettime(CLOCK_MONOTONIC, &timeout);
 	timeout.tv_sec += stopAckTimeout;
 	while (should_run && stop_requested && err != ETIMEDOUT)
 		// wait for acknowledgement.
