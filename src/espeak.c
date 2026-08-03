@@ -302,15 +302,39 @@ static espeak_ERROR speak_text(struct synth_t *s)
 		synth_mode |= espeakSSML;
 
 	if (espeakup_mode == ESPEAKUP_MODE_SPEAKUP && (s->len == 1)) {
-		char *buf;
+		char *buf = NULL;
 		int n;
-		if (s->buf[0] == ' ')
+		unsigned char c = s->buf[0];
+		if (c == ' ')
 			n = asprintf(&buf,
 			             "<say-as interpret-as=\"tts:char\">&#32;</say-as>");
-		else
-			n = asprintf(&buf,
-			             "<say-as interpret-as=\"characters\">%c</say-as>",
-			             s->buf[0]);
+		else if (c < 0x20 || c > 0x7e) {
+			/* Not a printable character; do not embed it in SSML, as
+			 * that would produce invalid markup.  Fall through to the
+			 * raw-synthesis path below. */
+			n = -1;
+		} else {
+			/* Escape characters that are special in XML/SSML so the
+			 * resulting markup stays well-formed; otherwise espeak-ng
+			 * misparses the <say-as> element, which is the source of
+			 * the spurious high-pitched "ringing" on these characters. */
+			const char *entity = NULL;
+			switch (c) {
+			case '<': entity = "&lt;"; break;
+			case '>': entity = "&gt;"; break;
+			case '&': entity = "&amp;"; break;
+			case '\'': entity = "&apos;"; break;
+			case '"': entity = "&quot;"; break;
+			}
+			if (entity)
+				n = asprintf(&buf,
+				             "<say-as interpret-as=\"characters\">%s</say-as>",
+				             entity);
+			else
+				n = asprintf(&buf,
+				             "<say-as interpret-as=\"characters\">%c</say-as>",
+				             c);
+		}
 		if (n == -1) {
 			/* D'oh.  Not much to do on allocation failure.
 			 * Perhaps espeak will happen to say the character */
